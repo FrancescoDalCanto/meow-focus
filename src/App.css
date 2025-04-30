@@ -1,0 +1,109 @@
+@import "tailwindcss";
+@import "tailwindcss/preflight"
+@tailwind utilities;
+
+
+/* Custom utility per rimuovere le freccette dagli input number */
+@layer utilities {
+
+    /* Firefox */
+    .no-spinner {
+        -moz-appearance: textfield;
+
+    }
+
+    /* Chrome, Safari, Edge */
+    .no-spinner::-webkit-inner-spin-button,
+    .no-spinner::-webkit-outer-spin-button {
+        -webkit-appearance: none;
+
+        margin: 0;
+    }
+}
+
+@keyframes fade-in-out {
+    0% {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+
+    10% {
+        opacity: 1;
+        transform: translateY(0);
+    }
+
+    90% {
+        opacity: 1;
+        transform: translateY(0);
+    }
+
+    100% {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+}
+
+.animate-fade-in-out {
+    animation: fade-in-out 3s ease-in-out forwards;
+}
+
+
+/* Fix per il ridimensionamento del grafico */
+.chartjs-render-monitor {
+    width: 100% !important;
+    height: 100% !important;
+    min-height: 300px;
+    position: relative;
+}
+
+.chartjs-size-monitor {
+    position: absolute !important;
+    inset: 0;
+    overflow: hidden;
+    pointer-events: none;
+    visibility: hidden;
+    z-index: -1;
+}
+
+/* Migliora la responsive del modal */
+@media (max-width: 640px) {
+    .chartjs-render-monitor {
+        min-height: 250px;
+    }
+}
+
+
+
+/* Grafica per il logout */
+@keyframes fade-in {
+    from {
+        opacity: 0;
+        transform: scale(0.95);
+    }
+
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+.animate-fade-in {
+    animation: fade-in 0.2s ease-out forwards;
+}
+
+/* Grafica per NotFound */
+@keyframes bounce-slow {
+
+    0%,
+    100% {
+        transform: translateY(0);
+    }
+
+    50% {
+        transform: translateY(-10px);
+    }
+}
+
+.animate-bounce-slow {
+    animation: bounce-slow 3s infinite;
+}
