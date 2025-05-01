@@ -11,58 +11,49 @@ import {
 import { useAuth } from "./AuthContext";
 import { collection, getDocs } from "firebase/firestore";
 import { db } from "./firebase";
-import { format } from "date-fns";
-import MonthlyComparison from "./MonthlyComparison"; // ⬅ assicurati che il path sia corretto
+import { format, startOfISOWeek, addWeeks, endOfISOWeek } from "date-fns";
+import MonthlyComparison from "./MonthlyComparison";
 
 ChartJS.register(BarElement, CategoryScale, LinearScale, Tooltip, Legend);
 
 function StudyProgress() {
-    // Ottiene l'utente attualmente autenticato dal contesto
     const { currentUser } = useAuth();
-    // Stato per contenere tutte le settimane caricate dal database
     const [allWeeks, setAllWeeks] = useState([]);
-    // Stato che rappresenta il mese selezionato dall'utente (es. "2025-04")
     const [selectedMonth, setSelectedMonth] = useState(null);
-    // Stato per mostrare o nascondere il popup di confronto mensile
     const [showMonthlyComparison, setShowMonthlyComparison] = useState(false);
 
-    // Effetto che si attiva quando currentUser è disponibile
     useEffect(() => {
         if (!currentUser) return;
 
-        // Funzione asincrona che legge tutte le settimane dal database
         const fetchAllWeeks = async () => {
             const weeksCol = collection(db, "studyProgress", currentUser.uid, "weeks");
             const snap = await getDocs(weeksCol);
             const weeks = [];
 
-            // Cicla tutti i documenti della collezione "weeks"
             for (const docSnap of snap.docs) {
                 const data = docSnap.data();
 
-                // Salta il documento se non ha un array valido di giorni
                 if (!data || !Array.isArray(data.days)) continue;
 
-                // Estrae anno e numero della settimana dal nome del documento (es. "2025-W15")
                 const [year, week] = docSnap.id.split("-W");
+                const parsedYear = parseInt(year);
+                const parsedWeek = parseInt(week);
 
-                // Calcola data di inizio e fine settimana basandosi sul numero della settimana
-                const start = new Date(+year, 0, (parseInt(week) - 1) * 7 + 1);
-                const end = new Date(+year, 0, (parseInt(week) - 1) * 7 + 7);
+                // Calcola inizio settimana ISO
+                const firstThursday = new Date(parsedYear, 0, 4); // 4 Gennaio è garantito nella settimana 1 ISO
+                const startOfWeek = addWeeks(startOfISOWeek(firstThursday), parsedWeek - 1);
+                const endOfWeek = endOfISOWeek(startOfWeek);
 
-                // Crea una label visiva del tipo "01/04–07/04"
-                const label = `${start.toLocaleDateString("it-IT", {
+                const label = `${startOfWeek.toLocaleDateString("it-IT", {
                     day: "2-digit",
                     month: "2-digit",
-                })}–${end.toLocaleDateString("it-IT", {
+                })}–${endOfWeek.toLocaleDateString("it-IT", {
                     day: "2-digit",
                     month: "2-digit",
                 })}`;
 
-                // Estrae il mese in formato "yyyy-MM" per usarlo nel filtro
-                const monthKey = format(start, "yyyy-MM");
+                const monthKey = format(startOfWeek, "yyyy-MM");
 
-                // Aggiunge la settimana all'array con id, label, giorni e mese
                 weeks.push({
                     id: docSnap.id,
                     label,
@@ -71,58 +62,50 @@ function StudyProgress() {
                 });
             }
 
-            // Ordina le settimane in ordine decrescente (più recente prima)
             weeks.sort((a, b) => (a.id < b.id ? 1 : -1));
-
-            // Aggiorna lo stato con tutte le settimane raccolte
             setAllWeeks(weeks);
         };
 
-        // Avvia la funzione di caricamento
         fetchAllWeeks();
     }, [currentUser]);
 
-    // Crea dinamicamente l'elenco dei mesi disponibili tra tutte le settimane
     const monthsAvailable = useMemo(() => {
         const set = new Set();
-        allWeeks.forEach((w) => set.add(w.month)); // Aggiunge il mese all'insieme
-        return Array.from(set).sort((a, b) => new Date(b) - new Date(a)); // Ordina i mesi in ordine decrescente
+        allWeeks.forEach((w) => set.add(w.month));
+        return Array.from(set).sort((a, b) => new Date(b) - new Date(a));
     }, [allWeeks]);
 
-    // Applica il filtro in base al mese selezionato, altrimenti mostra tutte le settimane
     const weeksToDisplay = selectedMonth
         ? allWeeks.filter((w) => w.month === selectedMonth)
         : allWeeks;
 
-    // Crea i dati da passare al grafico per una settimana specifica
     const createChartData = (days) => ({
-        labels: ["Lun", "Mar", "Mer", "Gio", "Ven", "Sab", "Dom"], // Etichette dei giorni
+        labels: ["Lun", "Mar", "Mer", "Gio", "Ven", "Sab", "Dom"],
         datasets: [
             {
-                label: "Studio (h)", // Etichetta del dataset
-                data: days.map((d) => (d.study || 0) / 60), // Converte minuti in ore
-                backgroundColor: "#a855f7", // Colore delle barre
-                borderRadius: 5, // Arrotondamento degli angoli
+                label: "Studio (h)",
+                data: days.map((d) => (d.study || 0) / 60),
+                backgroundColor: "#a855f7",
+                borderRadius: 5,
             },
         ],
     });
 
-    // Opzioni di configurazione per il grafico settimanale
     const options = {
         responsive: true,
         plugins: {
-            legend: { display: true, labels: { color: "#ccc" } }, // Legenda visibile e di colore chiaro
+            legend: { display: true, labels: { color: "#ccc" } },
         },
         scales: {
             y: {
-                beginAtZero: true, // L’asse Y parte da 0
-                ticks: { color: "#ccc" }, // Colore delle etichette sull’asse Y
-                grid: { color: "#444" }, // Colore griglia Y
-                title: { display: true, text: "Ore", color: "#ccc" }, // Titolo asse Y
+                beginAtZero: true,
+                ticks: { color: "#ccc" },
+                grid: { color: "#444" },
+                title: { display: true, text: "Ore", color: "#ccc" },
             },
             x: {
-                ticks: { color: "#ccc" }, // Colore delle etichette sull’asse X
-                grid: { color: "#444" }, // Colore griglia X
+                ticks: { color: "#ccc" },
+                grid: { color: "#444" },
             },
         },
     };
