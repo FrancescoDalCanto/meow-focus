@@ -132,6 +132,19 @@ function App() {
       </div>
 
       {showPopup && <Popup type={popupType} onClose={closePopup} />}
+
+      {/* Footer Instagram link */}
+      <div className="fixed bottom-4 left-4 text-gray-400 text-sm hover:text-white transition-colors duration-300">
+        Creato da:{" "}
+        <a
+          href="https://www.instagram.com/francesco.dalcanto"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="underline"
+        >
+          @francesco.dalcanto
+        </a>
+      </div>
     </div>
   );
 }

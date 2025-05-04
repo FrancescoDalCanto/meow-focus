@@ -11,7 +11,6 @@ self.addEventListener('install', (event) => {
                 '/manifest.json',
                 '/icons/icon-192x192.png',
                 '/icons/icon-512x512.png'
-                // Se hai altri file importanti da servire offline, aggiungili qui
             ]);
         })
     );
