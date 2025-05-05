@@ -1,40 +1,27 @@
 import React, { useEffect, useRef, useState } from "react";
-import { doc, updateDoc, onSnapshot, setDoc, getDoc } from "firebase/firestore";
+import { doc, updateDoc, onSnapshot } from "firebase/firestore";
 import { db } from "./firebase";
 import { useAuth } from "./AuthContext";
+import { updateProgress } from "./updateProgress";
 
 function StudyBreakTimer({ studyDuration, breakDuration, sessionId, sync, canControl }) {
-  // Ottiene l'utente attualmente autenticato
   const { currentUser } = useAuth();
-  // Stato per determinare se è il momento di studio
   const [isStudyTime, setIsStudyTime] = useState(true);
-  // Stato per i secondi rimanenti
   const [secondsLeft, setSecondsLeft] = useState(0);
-  // Stato per indicare se il timer è in esecuzione
   const [isRunning, setIsRunning] = useState(false);
-  // Riferimento per memorizzare l'ID dell'intervallo
   const intervalRef = useRef(null);
-  // Riferimento per memorizzare l'inizio dell'ultima sessione
   const lastSessionStart = useRef(Date.now());
 
-  //TODO: da rimuovere
-  // Riferimenti per gli elementi audio (suoni di fine sessione)
   const studyAudioRef = useRef(null);
   const breakAudioRef = useRef(null);
-
-  // Riferimenti per i suoni di pre-avviso (avvisano che la sessione sta per finire)
   const pauseSoonAudioRef = useRef(null);
   const studySoonAudioRef = useRef(null);
-
-  // Flag per evitare che il suono di pre-avviso venga riprodotto più volte
   const hasPlayedSoonAudio = useRef(false);
 
-  // Imposta una durata massima sicura per evitare errori (es. timer eccessivamente lunghi)
   const MAX_DURATION = 86400;
   const safeStudyDuration = Math.min(studyDuration, MAX_DURATION);
   const safeBreakDuration = Math.min(breakDuration, MAX_DURATION);
 
-  // Funzione per ottenere i dati della settimana corrente (anno, numero settimana e giorno)
   const getCurrentWeekData = () => {
     const now = new Date();
     const start = new Date(now.getFullYear(), 0, 1);
@@ -44,34 +31,14 @@ function StudyBreakTimer({ studyDuration, breakDuration, sessionId, sync, canCon
     return { year: now.getFullYear(), weekNumber, dayIndex };
   };
 
-  // Aggiorna i progressi di studio sul database
-  const updateProgress = async (seconds) => {
-    if (!currentUser || seconds <= 0) return;
-    const { year, weekNumber, dayIndex } = getCurrentWeekData();
-    const docRef = doc(db, "studyProgress", currentUser.uid, "weeks", `${year}-W${weekNumber}`);
-    const snap = await getDoc(docRef);
-    let data = snap.exists()
-      ? snap.data()
-      : { year, weekNumber, days: Array.from({ length: 7 }, () => ({ study: 0 })) };
-
-    const updated = [...data.days];
-    if (!updated[dayIndex]) updated[dayIndex] = { study: 0 };
-    if (typeof updated[dayIndex].study !== "number") updated[dayIndex].study = 0;
-    updated[dayIndex].study += Math.round(seconds / 60);
-
-    await setDoc(docRef, { year, weekNumber, days: updated });
-    window.dispatchEvent(new Event("storage-update")); // Aggiorna la visualizzazione
-  };
-
-  // Salva i minuti di studio se necessario (es. quando si mette in pausa o finisce una sessione)
   const saveStudyIfNeeded = async () => {
     const elapsedSeconds = Math.floor((Date.now() - lastSessionStart.current) / 1000);
-    if (isStudyTime && elapsedSeconds > 0) {
-      await updateProgress(elapsedSeconds);
+    if (isStudyTime && elapsedSeconds > 0 && currentUser) {
+      const { year, weekNumber, dayIndex } = getCurrentWeekData();
+      await updateProgress(currentUser.uid, year, weekNumber, dayIndex, Math.round(elapsedSeconds / 60));
     }
   };
 
-  // Imposta il timer iniziale quando cambia modalità studio/pausa o se la sincronizzazione è disattivata
   useEffect(() => {
     if (!sync) {
       const newDuration = isStudyTime ? safeStudyDuration : safeBreakDuration;
@@ -79,7 +46,6 @@ function StudyBreakTimer({ studyDuration, breakDuration, sessionId, sync, canCon
     }
   }, [safeStudyDuration, safeBreakDuration, isStudyTime, sync]);
 
-  // Sincronizza il timer leggendo i dati in tempo reale da Firestore se in modalità sincronizzata
   useEffect(() => {
     if (!sync || !sessionId) return;
     const sessionRef = doc(db, "globalSessions", sessionId);
@@ -96,10 +62,9 @@ function StudyBreakTimer({ studyDuration, breakDuration, sessionId, sync, canCon
       setIsRunning(isRunning);
       setSecondsLeft(newTime);
     });
-    return () => unsubscribe(); // Pulizia in caso il componente venga smontato
+    return () => unsubscribe();
   }, [sync, sessionId, safeStudyDuration, safeBreakDuration]);
 
-  // Reset automatico del timer quando termina e non è in esecuzione (solo in modalità sincronizzata)
   useEffect(() => {
     if (sync && !isRunning && secondsLeft === 0) {
       const newDuration = isStudyTime ? safeStudyDuration : safeBreakDuration;
@@ -107,24 +72,18 @@ function StudyBreakTimer({ studyDuration, breakDuration, sessionId, sync, canCon
     }
   }, [safeStudyDuration, safeBreakDuration, isStudyTime, sync, isRunning, secondsLeft]);
 
-  // Riproduce i suoni di pre-avviso se il timer sta per terminare
   useEffect(() => {
     if (secondsLeft <= 30 && secondsLeft > 0 && !hasPlayedSoonAudio.current) {
-      if (isStudyTime && pauseSoonAudioRef.current) {
-        pauseSoonAudioRef.current.play();
-      }
-      if (!isStudyTime && studySoonAudioRef.current) {
-        studySoonAudioRef.current.play();
-      }
+      if (isStudyTime && pauseSoonAudioRef.current) pauseSoonAudioRef.current.play();
+      if (!isStudyTime && studySoonAudioRef.current) studySoonAudioRef.current.play();
       hasPlayedSoonAudio.current = true;
     }
 
     if (secondsLeft > 30) {
-      hasPlayedSoonAudio.current = false; // Reset se il timer aumenta di nuovo
+      hasPlayedSoonAudio.current = false;
     }
   }, [secondsLeft, isStudyTime]);
 
-  // Gestisce l'avanzamento del timer ogni secondo e gestisce i passaggi tra studio e pausa
   useEffect(() => {
     if (!isRunning) {
       clearInterval(intervalRef.current);
@@ -165,10 +124,9 @@ function StudyBreakTimer({ studyDuration, breakDuration, sessionId, sync, canCon
       });
     }, 1000);
 
-    return () => clearInterval(intervalRef.current); // Pulizia al termine
+    return () => clearInterval(intervalRef.current);
   }, [isRunning, isStudyTime, sync, sessionId, canControl, safeStudyDuration, safeBreakDuration]);
 
-  // Avvia o mette in pausa il timer
   const handleStartPause = async () => {
     if (!canControl) return;
     const totalDuration = isStudyTime ? safeStudyDuration : safeBreakDuration;
@@ -195,7 +153,6 @@ function StudyBreakTimer({ studyDuration, breakDuration, sessionId, sync, canCon
     }
   };
 
-  // Resetta il timer e la sessione
   const handleReset = async () => {
     if (!canControl) return;
 
@@ -216,7 +173,6 @@ function StudyBreakTimer({ studyDuration, breakDuration, sessionId, sync, canCon
     }
   };
 
-  // Converte i secondi in formato HH:MM:SS per la visualizzazione
   const formatTime = (sec) => {
     const h = Math.floor(sec / 3600);
     const m = Math.floor((sec % 3600) / 60);
@@ -224,14 +180,9 @@ function StudyBreakTimer({ studyDuration, breakDuration, sessionId, sync, canCon
     return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
   };
 
-  // Calcola la percentuale di completamento per eventuali barre di avanzamento
   const totalDuration = isStudyTime ? safeStudyDuration : safeBreakDuration;
   const percentComplete = totalDuration > 0 ? 100 - (secondsLeft / totalDuration) * 100 : 0;
-
-  // Garantisce che secondsLeft sia sempre un numero valido e non negativo
-  const safeSecondsLeft = typeof secondsLeft === "number" && !isNaN(secondsLeft) && secondsLeft >= 0
-    ? secondsLeft
-    : 0;
+  const safeSecondsLeft = Math.max(0, secondsLeft);
 
   return (
     <div className="text-center max-w-xl mx-auto">
@@ -266,7 +217,6 @@ function StudyBreakTimer({ studyDuration, breakDuration, sessionId, sync, canCon
         </button>
       </div>
 
-      {/* Audio Elements */}
       <audio ref={studyAudioRef} src="/audio/study_start.mp3" preload="auto" />
       <audio ref={breakAudioRef} src="/audio/break_start.mp3" preload="auto" />
       <audio ref={pauseSoonAudioRef} src="/audio/pause_soon.mp3" preload="auto" />
