@@ -137,12 +137,12 @@ function App() {
       <div className="fixed bottom-4 left-4 text-gray-400 text-sm hover:text-white transition-colors duration-300">
         Creato da:{" "}
         <a
-          href="https://www.instagram.com/francesco.dalcanto"
+          href="https://github.com/FrancescoDalCanto/meow-focus"
           target="_blank"
           rel="noopener noreferrer"
           className="underline"
         >
-          @francesco.dalcanto
+          @FrancescoDalCanto
         </a>
       </div>
     </div>
