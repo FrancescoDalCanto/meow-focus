@@ -6,7 +6,6 @@ import User from './User';
 import Stanza from './Sessione';
 import NotFound from './NotFound';
 import AdminPage from './AdminPage';
-import AdminAnalytics from './AdminAnalytics'; // <-- aggiunto qui
 import { AuthProvider } from './AuthContext';
 import { RedirectProvider } from './RedirectContext';
 import PrivateRoute from './PrivateRoute';
@@ -39,7 +38,6 @@ createRoot(document.getElementById('root')).render(
                                 <Route path="/login" element={<App initialTab="login" />} />
                                 <Route path="/register" element={<App initialTab="register" />} />
                                 <Route path="/admin" element={<AdminPage />} />
-                                <Route path="/admin-analytics" element={<AdminAnalytics />} /> {/* <-- aggiunta questa */}
                                 <Route path="*" element={<NotFound />} />
                             </Route>
 
