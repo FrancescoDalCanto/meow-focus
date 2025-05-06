@@ -210,7 +210,6 @@ function Stanza({ sessionId: sessionIdProp = null }) {
                         className="w-full bg-gray-700 text-white p-3 rounded-lg text-center text-xl focus:outline-none focus:ring-2 focus:ring-purple-500 no-spinner"
                         readOnly={!isCreator}
                     />
-                    <p className="text-sm text-purple-400 mt-2 text-center">Max: 1440 minuti</p>
                 </div>
 
                 <div className="bg-gray-800 p-6 rounded-xl">
@@ -222,7 +221,6 @@ function Stanza({ sessionId: sessionIdProp = null }) {
                         className="w-full bg-gray-700 text-white p-3 rounded-lg text-center text-xl focus:outline-none focus:ring-2 focus:ring-purple-500 no-spinner"
                         readOnly={!isCreator}
                     />
-                    <p className="text-sm text-purple-400 mt-2 text-center">Max: 30 minuti</p>
                 </div>
             </section>
 
