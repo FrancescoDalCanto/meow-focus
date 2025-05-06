@@ -108,8 +108,12 @@ function MonthlyComparison({ onClose }) {
             legend: { display: false }, // Nasconde la legenda
             tooltip: {
                 callbacks: {
-                    // Personalizza l'etichetta del tooltip
-                    label: (context) => `${context.raw} minuti`,
+                    label: function (context) {
+                        const rawValue = context.raw;
+                        const hours = Math.floor(rawValue);
+                        const minutes = Math.round((rawValue - hours) * 60);
+                        return `Studio: ${hours}h ${minutes}m`;
+                    }
                 },
             },
         },
