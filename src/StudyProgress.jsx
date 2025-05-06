@@ -16,10 +16,6 @@ import MonthlyComparison from "./MonthlyComparison";
 
 ChartJS.register(BarElement, CategoryScale, LinearScale, Tooltip, Legend);
 
-
-// TODO: andare a testare il grafico.
-
-
 function StudyProgress() {
     const { currentUser } = useAuth();
     const [allWeeks, setAllWeeks] = useState([]);
@@ -151,6 +147,16 @@ function StudyProgress() {
         responsive: true,
         plugins: {
             legend: { display: true, labels: { color: "#ccc" } },
+            tooltip: {
+                callbacks: {
+                    label: function (context) {
+                        const rawValue = context.raw;
+                        const hours = Math.floor(rawValue);
+                        const minutes = Math.round((rawValue - hours) * 60);
+                        return `Studio: ${hours}h ${minutes}m`;
+                    }
+                }
+            }
         },
         scales: {
             y: {
