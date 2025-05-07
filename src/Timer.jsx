@@ -11,7 +11,9 @@ function StudyBreakTimer({ studyDuration, breakDuration, sessionId, sync, canCon
   const [isRunning, setIsRunning] = useState(false);
   const intervalRef = useRef(null);
   const lastSessionStart = useRef(Date.now());
+  const localStartTime = useRef(null); // ← gestisce il tempo di partenza locale
 
+  // Audio refs
   const studyAudioRef = useRef(null);
   const breakAudioRef = useRef(null);
   const pauseSoonAudioRef = useRef(null);
@@ -22,6 +24,7 @@ function StudyBreakTimer({ studyDuration, breakDuration, sessionId, sync, canCon
   const safeStudyDuration = Math.min(studyDuration, MAX_DURATION);
   const safeBreakDuration = Math.min(breakDuration, MAX_DURATION);
 
+  // Calcola settimana corrente per aggiornare lo studio
   const getCurrentWeekData = () => {
     const now = new Date();
     const start = new Date(now.getFullYear(), 0, 1);
@@ -31,6 +34,7 @@ function StudyBreakTimer({ studyDuration, breakDuration, sessionId, sync, canCon
     return { year: now.getFullYear(), weekNumber, dayIndex };
   };
 
+  // Salva minuti di studio se necessario
   const saveStudyIfNeeded = async () => {
     const elapsedSeconds = Math.floor((Date.now() - lastSessionStart.current) / 1000);
     if (isStudyTime && elapsedSeconds > 0 && currentUser) {
@@ -39,6 +43,7 @@ function StudyBreakTimer({ studyDuration, breakDuration, sessionId, sync, canCon
     }
   };
 
+  // Imposta il timer iniziale (solo in locale)
   useEffect(() => {
     if (!sync) {
       const newDuration = isStudyTime ? safeStudyDuration : safeBreakDuration;
@@ -46,6 +51,7 @@ function StudyBreakTimer({ studyDuration, breakDuration, sessionId, sync, canCon
     }
   }, [safeStudyDuration, safeBreakDuration, isStudyTime, sync]);
 
+  // Sincronizza con Firestore (se sync è attivo)
   useEffect(() => {
     if (!sync || !sessionId) return;
     const sessionRef = doc(db, "globalSessions", sessionId);
@@ -53,18 +59,21 @@ function StudyBreakTimer({ studyDuration, breakDuration, sessionId, sync, canCon
       const data = docSnap.data();
       if (!data) return;
       const { isRunning, startTime, isStudyTime: remoteIsStudyTime, remainingSeconds } = data;
+
       setIsStudyTime(remoteIsStudyTime);
       const now = Date.now();
       const baseDuration = remoteIsStudyTime ? safeStudyDuration : safeBreakDuration;
       const newTime = isRunning
         ? Math.max(baseDuration - Math.floor((now - startTime) / 1000), 0)
         : remainingSeconds;
+
       setIsRunning(isRunning);
       setSecondsLeft(newTime);
     });
     return () => unsubscribe();
   }, [sync, sessionId, safeStudyDuration, safeBreakDuration]);
 
+  // Resetta il timer (sync) se il tempo è 0
   useEffect(() => {
     if (sync && !isRunning && secondsLeft === 0) {
       const newDuration = isStudyTime ? safeStudyDuration : safeBreakDuration;
@@ -72,30 +81,44 @@ function StudyBreakTimer({ studyDuration, breakDuration, sessionId, sync, canCon
     }
   }, [safeStudyDuration, safeBreakDuration, isStudyTime, sync, isRunning, secondsLeft]);
 
+  // Audio "sta per finire"
   useEffect(() => {
     if (secondsLeft <= 30 && secondsLeft > 0 && !hasPlayedSoonAudio.current) {
       if (isStudyTime && pauseSoonAudioRef.current) pauseSoonAudioRef.current.play();
       if (!isStudyTime && studySoonAudioRef.current) studySoonAudioRef.current.play();
       hasPlayedSoonAudio.current = true;
     }
-
     if (secondsLeft > 30) {
       hasPlayedSoonAudio.current = false;
     }
   }, [secondsLeft, isStudyTime]);
 
+  // Timer principale
   useEffect(() => {
     if (!isRunning) {
       clearInterval(intervalRef.current);
       return;
     }
 
-    lastSessionStart.current = Date.now();
-    intervalRef.current = setInterval(() => {
-      setSecondsLeft((prev) => {
-        if (prev <= 1) {
-          clearInterval(intervalRef.current);
+    if (!sync) {
+      // Locale → se riparte da una pausa, localStartTime parte da ora
+      if (localStartTime.current === null) {
+        localStartTime.current = Date.now();
+      }
+    } else {
+      lastSessionStart.current = Date.now();
+    }
 
+    intervalRef.current = setInterval(() => {
+      if (!sync) {
+        const totalDuration = isStudyTime ? safeStudyDuration : safeBreakDuration;
+        const elapsed = Math.floor((Date.now() - localStartTime.current) / 1000);
+        const newSecondsLeft = Math.max(totalDuration - elapsed, 0);
+
+        setSecondsLeft(newSecondsLeft);
+
+        if (newSecondsLeft === 0) {
+          clearInterval(intervalRef.current);
           saveStudyIfNeeded();
 
           const nextIsStudyTime = !isStudyTime;
@@ -106,27 +129,24 @@ function StudyBreakTimer({ studyDuration, breakDuration, sessionId, sync, canCon
             if (!isStudyTime && breakAudioRef.current) breakAudioRef.current.play();
           }
 
-          if (sync && sessionId && canControl) {
-            const sessionRef = doc(db, "globalSessions", sessionId);
-            updateDoc(sessionRef, {
-              isStudyTime: nextIsStudyTime,
-              startTime: Date.now(),
-              remainingSeconds: nextDuration,
-            });
-          }
-
           setIsStudyTime(nextIsStudyTime);
           setSecondsLeft(nextDuration);
-          return nextDuration;
+          localStartTime.current = null;
         }
 
-        return prev - 1;
-      });
+      } else {
+        // Sync → classico decremento
+        setSecondsLeft((prev) => {
+          if (prev <= 1) clearInterval(intervalRef.current);
+          return prev - 1;
+        });
+      }
     }, 1000);
 
     return () => clearInterval(intervalRef.current);
-  }, [isRunning, isStudyTime, sync, sessionId, canControl, safeStudyDuration, safeBreakDuration]);
+  }, [isRunning, isStudyTime, sync, sessionId, canControl, safeStudyDuration, safeBreakDuration, secondsLeft]);
 
+  // Start / Pausa
   const handleStartPause = async () => {
     if (!canControl) return;
     const totalDuration = isStudyTime ? safeStudyDuration : safeBreakDuration;
@@ -148,15 +168,18 @@ function StudyBreakTimer({ studyDuration, breakDuration, sessionId, sync, canCon
     } else {
       if (isRunning) {
         await saveStudyIfNeeded();
+        localStartTime.current = null; // ← in pausa → stoppa il conteggio del tempo
       }
       setIsRunning((prev) => !prev);
     }
   };
 
+  // Reset
   const handleReset = async () => {
     if (!canControl) return;
 
     await saveStudyIfNeeded();
+    localStartTime.current = null; // ← azzera partenza locale
 
     if (sync && sessionId) {
       const sessionRef = doc(db, "globalSessions", sessionId);
@@ -173,6 +196,7 @@ function StudyBreakTimer({ studyDuration, breakDuration, sessionId, sync, canCon
     }
   };
 
+  // Format tempo
   const formatTime = (sec) => {
     const h = Math.floor(sec / 3600);
     const m = Math.floor((sec % 3600) / 60);
