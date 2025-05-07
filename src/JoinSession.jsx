@@ -1,43 +1,68 @@
 import React, { useState } from 'react';
 
 const JoinSession = ({ closePopup, onJoin }) => {
+    // Stato che memorizza l'URL inserito dall'utente per la sessione
     const [sessionUrl, setSessionUrl] = useState('');
+
+    // Stato che indica se è in corso la validazione dell'URL (usato per mostrare un loader o disabilitare il form)
     const [isValidating, setIsValidating] = useState(false);
+
+    // Stato che memorizza eventuali messaggi di errore (es. URL non valido o mancante)
     const [error, setError] = useState('');
 
+    /**
+     * Funzione che verifica se una stringa è un URL valido
+     * - Tenta di creare un oggetto URL
+     * - Se riesce → restituisce true
+     * - Se fallisce → restituisce false (URL non valido)
+     */
     const validateUrl = (url) => {
         try {
-            new URL(url);
-            return true;
+            new URL(url); // Prova a creare un URL
+            return true;  // URL valido
         } catch {
-            return false;
+            return false; // URL non valido
         }
     };
 
+    /**
+     * Gestisce l'invio del form per entrare in una sessione
+     * - Esegue validazione dell'URL
+     * - Mostra errori se l'URL è mancante o non valido
+     * - Se valido → attende 800ms e poi esegue l'azione di join
+     */
     const handleSubmit = (e) => {
-        e.preventDefault();
-        setIsValidating(true);
-        setError('');
+        e.preventDefault(); // Previene il comportamento di invio predefinito del form
+        setIsValidating(true); // Imposta la validazione come in corso
+        setError(''); // Pulisce eventuali errori precedenti
 
+        // Controlla se l'utente ha inserito un URL
         if (!sessionUrl) {
             setError('Inserisci un link della sessione');
             setIsValidating(false);
             return;
         }
 
+        // Controlla se l'URL inserito è valido
         if (!validateUrl(sessionUrl)) {
             setError('Inserisci un URL valido (inizia con http:// o https://)');
             setIsValidating(false);
             return;
         }
 
+        // Simula un breve ritardo prima di completare l'azione (es. per UX o caricamento)
         setTimeout(() => {
-            setIsValidating(false);
+            setIsValidating(false); // Fine validazione
+
             if (onJoin) {
+                // Se è presente una funzione di join → la chiama con l'URL inserito
                 onJoin(sessionUrl);
             } else {
+                // Altrimenti → reindirizza direttamente l'utente all'URL
                 window.location.href = sessionUrl;
             }
+
+            // Chiude il popup (presumibilmente la finestra/modal corrente)
             closePopup();
         }, 800);
     };

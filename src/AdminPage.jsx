@@ -4,15 +4,36 @@ import { db } from "./firebase";
 import CreateGlobalSession from "./CreateGlobalSession";
 
 function AdminPage() {
+    // Stato che indica se l'utente è autenticato (true → admin loggato, false → form di login visibile)
     const [autenticato, setAutenticato] = useState(false);
+
+    // Stato che memorizza l'email inserita dall'utente
     const [email, setEmail] = useState("");
+
+    // Stato che memorizza la password inserita dall'utente
     const [password, setPassword] = useState("");
+
+    // Stato che memorizza eventuali errori di autenticazione
     const [errore, setErrore] = useState("");
+
+    // Stato che contiene le sessioni globali recuperate da Firestore
     const [globalSessions, setGlobalSessions] = useState([]);
+
+    // Stato che memorizza i suggerimenti caricati dal database
     const [suggestions, setSuggestions] = useState([]);
+
+    // Stato che indica se la lista dei suggerimenti è visibile
     const [showSuggestions, setShowSuggestions] = useState(false);
+
+    // Stato che indica se i suggerimenti sono in fase di caricamento
     const [loadingSuggestions, setLoadingSuggestions] = useState(false);
 
+    /**
+     * Funzione per gestire l'invio del form di login
+     * - Controlla se le credenziali sono corrette
+     * - Se sì → imposta autenticato su true
+     * - Se no → mostra un errore
+     */
     const handleSubmit = (e) => {
         e.preventDefault();
         if (email === "admin@gmail.com" && password === "admin123") {
@@ -22,6 +43,11 @@ function AdminPage() {
         }
     };
 
+    /**
+     * useEffect → recupera le sessioni globali solo se l'utente è autenticato
+     * - Si sottoscrive in tempo reale alle modifiche nella collezione "globalSessions"
+     * - Filtra e mantiene solo le sessioni create dall'admin
+     */
     useEffect(() => {
         if (!autenticato) return;
 
@@ -37,6 +63,11 @@ function AdminPage() {
         return () => unsubscribe();
     }, [autenticato]);
 
+    /**
+     * Carica tutti i suggerimenti presenti nella collezione "suggestions" del database
+     * - Recupera anche l'userId da ogni percorso del documento
+     * - Mostra i suggerimenti dopo averli caricati
+     */
     const caricaSuggerimenti = async () => {
         setLoadingSuggestions(true);
         const suggestionsData = [];
@@ -63,6 +94,10 @@ function AdminPage() {
         setLoadingSuggestions(false);
     };
 
+    /**
+     * Crea una sessione globale su Firestore a partire da un oggetto session passato
+     * - Imposta la sessione come attiva e avviata
+     */
     const creaSessione = async (session) => {
         try {
             const studySeconds = 50 * 60;
@@ -92,12 +127,19 @@ function AdminPage() {
         }
     };
 
+    /**
+     * Crea tutte le sessioni globali presenti in globalSessions
+     */
     const creaTutteLeSessioni = async () => {
         for (const session of globalSessions) {
             await creaSessione(session);
         }
     };
 
+    /**
+     * Avvia solo le sessioni non attive tra quelle globali
+     * - Filtra le sessioni non attive e le crea/attiva
+     */
     const avviaSoloNonAttive = async () => {
         const nonAttive = globalSessions.filter(session => !session.isActive);
         for (const session of nonAttive) {
@@ -106,6 +148,10 @@ function AdminPage() {
         alert(`${nonAttive.length} sessioni attivate.`);
     };
 
+    /**
+     * Elimina una sessione sia da globalSessions che da sessions se presente
+     * - Chiede conferma prima di procedere
+     */
     const eliminaSessioneGlobal = async (sessionId) => {
         const conferma = window.confirm(`Vuoi eliminare "${sessionId}" da globalSessions e, se attiva, anche da sessions?`);
         if (!conferma) return;
@@ -119,6 +165,10 @@ function AdminPage() {
         }
     };
 
+    /**
+     * Corregge eventuali campi errati nelle sessioni globali
+     * - Se esiste il campo isStudying → lo rimuove e copia il valore in isStudyTime
+     */
     const correggiSessioniGlobali = async () => {
         const snapshot = await getDocs(collection(db, "globalSessions"));
         const promises = snapshot.docs.map(async (docSnap) => {
@@ -135,6 +185,10 @@ function AdminPage() {
         alert("Tutte le sessioni sono state corrette!");
     };
 
+    /**
+     * Avvia manualmente una sessione impostando isRunning su true
+     * - Chiede conferma prima di procedere
+     */
     const avviaSessioneManuale = async (sessionId) => {
         const conferma = window.confirm("Sei sicuro di voler avviare questa sessione?");
         if (!conferma) return;
@@ -153,6 +207,11 @@ function AdminPage() {
         }
     };
 
+    /**
+     * Renderizza il form di login se l'utente non è autenticato
+     * - Mostra campi email e password
+     * - Mostra eventuali errori di autenticazione
+     */
     if (!autenticato) {
         return (
             <div className="min-h-screen flex items-center justify-center bg-gray-900 text-white">
@@ -172,7 +231,6 @@ function AdminPage() {
             </div>
         );
     }
-
     return (
         <div className="min-h-screen bg-gray-900 text-white p-6">
             <h1 className="text-3xl font-bold text-purple-400 mb-8">Pannello Admin</h1>

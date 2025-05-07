@@ -7,39 +7,75 @@ import StudyBreakTimer from "./Timer";
 import { useAuth } from "./AuthContext";
 
 function Stanza({ sessionId: sessionIdProp = null }) {
+    // Recupera l'utente attualmente autenticato
     const { currentUser } = useAuth();
+
+    // Hook per la navigazione tra le pagine
     const navigate = useNavigate();
+
+    // Recupera l'id della sessione dalla URL (se presente)
     const { id: sessionIdFromUrl } = useParams();
 
+    // Stato per la durata dello studio in minuti (default: 25 minuti)
     const [studyDuration, setStudyDuration] = useState(25);
+
+    // Stato per la durata della pausa in minuti (default: 5 minuti)
     const [breakDuration, setBreakDuration] = useState(5);
+
+    // Stato per l'id della sessione corrente
+    // → Priorità: sessionIdProp (passato come prop) → sessionIdFromUrl (nella URL) → null
     const [sessionId, setSessionId] = useState(sessionIdProp || sessionIdFromUrl || null);
+
+    // Stato per il link della sessione (URL condivisibile)
     const [sessionLink, setSessionLink] = useState("");
+
+    // Stato per l'id dell'utente che ha creato la sessione
     const [sessionCreator, setSessionCreator] = useState(null);
+
+    // Stato per memorizzare la lista dei partecipanti alla sessione
     const [participants, setParticipants] = useState([]);
+
+    // Stato per controllare se il menu è aperto o chiuso
     const [isMenuOpen, setIsMenuOpen] = useState(false);
+
+    // Stato per controllare se la musica LO-FI è attiva o meno
     const [isLoFiMusicOn, setIsLoFiMusicOn] = useState(false);
+
+    // Stato per controllare se il popup di condivisione link è aperto
     const [isLinkPopupOpen, setIsLinkPopupOpen] = useState(false);
+
+    // Stato per mostrare o nascondere il messaggio di copia link (toast)
     const [showToast, setShowToast] = useState(false);
 
-
-    //si aggiorna ogni volta che currentUser o sessionCreator cambiano
+    // Calcola se l'utente corrente è il creatore della sessione
+    // → Si aggiorna ogni volta che currentUser o sessionCreator cambiano
     const isCreator = React.useMemo(() => sessionCreator === currentUser?.uid, [sessionCreator, currentUser]);
 
+    /**
+     * useEffect → crea una nuova sessione se non esiste già e l'utente è autenticato
+     */
     useEffect(() => {
         if (!sessionId && currentUser) {
             createSession();
         }
     }, [sessionId, currentUser]);
 
+    /**
+     * Crea una nuova sessione e aggiorna gli stati correlati (id, link, creator)
+     */
     const createSession = async () => {
         try {
+            // Genera il link della sessione con le informazioni di durata e creatore
             const link = await generateSessionLink({
-                studyDuration: studyDuration * 60,
+                studyDuration: studyDuration * 60,   // Converte i minuti in secondi
                 breakDuration: breakDuration * 60,
                 creatorId: currentUser?.uid,
             });
+
+            // Estrae l'id della sessione dal link generato
             const id = link.split("/session/")[1];
+
+            // Imposta gli stati con le informazioni della nuova sessione
             setSessionId(id);
             setSessionLink(link);
             setSessionCreator(currentUser?.uid);
@@ -49,74 +85,111 @@ function Stanza({ sessionId: sessionIdProp = null }) {
         }
     };
 
+    /**
+     * useEffect → ascolta i cambiamenti del documento della sessione su Firestore
+     * → Aggiorna localmente dati come durate, creatore e partecipanti
+     */
     useEffect(() => {
         if (!sessionId) return;
+
         const ref = doc(db, "globalSessions", sessionId);
+
+        // Si sottoscrive ai cambiamenti del documento in Firestore
         const unsub = onSnapshot(ref, (snap) => {
             const data = snap.data();
             if (data) {
-                setStudyDuration(data.studyDuration / 60);
-                setBreakDuration(data.breakDuration / 60);
+                setStudyDuration(data.studyDuration / 60); // Aggiorna durata studio (da secondi a minuti)
+                setBreakDuration(data.breakDuration / 60); // Aggiorna durata pausa (da secondi a minuti)
+
+                // Aggiorna il creatore se non impostato o diverso
                 if (!sessionCreator || sessionCreator !== data.creatorId) {
                     setSessionCreator(data.creatorId);
                 }
+
+                // Aggiorna la lista dei partecipanti
                 setParticipants(data.participants || []);
             }
         });
+
+        // Cleanup: rimuove la sottoscrizione quando il componente si smonta o sessionId cambia
         return () => unsub();
     }, [sessionId, sessionCreator]);
 
+    /**
+     * useEffect → genera il link della sessione ogni volta che sessionId cambia
+     */
     useEffect(() => {
         if (sessionId) {
             setSessionLink(`${window.location.origin}/session/${sessionId}`);
         }
     }, [sessionId]);
 
+    /**
+     * Copia il link della sessione negli appunti e mostra un toast di conferma
+     */
     const handleCopyLink = () => {
         navigator.clipboard.writeText(sessionLink);
-        setShowToast(true);
-        setIsLinkPopupOpen(false);
-        setTimeout(() => setShowToast(false), 2500);
+        setShowToast(true);          // Mostra il toast
+        setIsLinkPopupOpen(false);   // Chiude il popup link
+        setTimeout(() => setShowToast(false), 2500); // Nasconde il toast dopo 2.5 secondi
     };
 
+    /**
+     * Attiva o disattiva la musica LO-FI
+     */
     const toggleLoFiMusic = () => setIsLoFiMusicOn((prev) => !prev);
 
+    /**
+     * Gestisce la modifica delle durate di studio o pausa
+     * - Limita il valore massimo
+     * - Se la sessione è sincronizzata e l'utente è il creatore → aggiorna Firestore
+     */
     const handleDurationChange = (setter, fieldName, maxValue) => async (e) => {
         let value = e.target.value;
+
+        // Permette l'inserimento di un campo vuoto (es. durante la digitazione)
         if (value === "") {
             setter("");
             return;
         }
 
         let parsed = parseInt(value);
+
+        // Se il valore non è un numero → esce
         if (isNaN(parsed)) return;
 
+        // Limita il valore massimo
         if (parsed > maxValue) {
             parsed = maxValue;
         }
 
+        // Aggiorna lo stato locale
         setter(parsed);
 
+        // Se la sessione è sincronizzata e l'utente è il creatore → aggiorna Firestore
         if (sessionId && isCreator) {
             const ref = doc(db, "globalSessions", sessionId);
             const snap = await getDoc(ref);
             if (!snap.exists()) return;
 
             const data = snap.data();
-            const updates = { [fieldName]: parsed * 60 };
+            const updates = { [fieldName]: parsed * 60 }; // Converte in secondi
 
-            // Sempre aggiorniamo remainingSeconds e startTime, se il timer è fermo
+            // Se il timer non è in esecuzione → aggiorna anche remainingSeconds e startTime
             if (!data.isRunning) {
                 const isChangingStudy = fieldName === "studyDuration";
+
                 if (isChangingStudy && data.isStudyTime) {
                     updates.remainingSeconds = parsed * 60;
                 } else if (!isChangingStudy && !data.isStudyTime) {
                     updates.remainingSeconds = parsed * 60;
                 }
+
                 updates.startTime = Date.now();
                 updates.isRunning = false;
             }
 
+            // Esegue l'aggiornamento su Firestore
             await updateDoc(ref, updates);
         }
     };

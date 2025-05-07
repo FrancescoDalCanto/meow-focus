@@ -15,40 +15,48 @@ import { format } from "date-fns";
 
 ChartJS.register(BarElement, CategoryScale, LinearScale, Tooltip, Legend);
 
+// TODO: dividere i commenti per le cose che fanno
+
+
 function WeeklyOverview() {
     // Ottiene l'utente attualmente autenticato dal contesto globale
     const { currentUser } = useAuth();
-    // Stato per memorizzare tutte le settimane recuperate dal database
+
+    // Hook di stato che memorizza tutte le settimane recuperate dal database (usato per il grafico e la selezione)
     const [allWeeks, setAllWeeks] = useState([]);
-    // Stato per memorizzare il mese attualmente selezionato per il filtro
+
+    // Hook di stato per il mese selezionato dall'utente (usato per filtrare le settimane mostrate)
     const [selectedMonth, setSelectedMonth] = useState(null);
 
-    // useEffect che si attiva quando currentUser è disponibile
+    /**
+     * useEffect → viene eseguito quando currentUser diventa disponibile
+     * Recupera tutte le settimane relative all'utente autenticato da Firestore
+     */
     useEffect(() => {
-        if (!currentUser) return;
+        if (!currentUser) return; // Se non c'è un utente → esce
 
-        // Funzione asincrona per caricare tutte le settimane dell'utente dal database
+        // Funzione asincrona per caricare tutte le settimane dal database
         const fetchAllWeeks = async () => {
-            // Ottiene la collezione "weeks" relativa all'utente
+            // Ottiene il riferimento alla collezione "weeks" dell'utente
             const weeksCol = collection(db, "studyProgress", currentUser.uid, "weeks");
-            const snap = await getDocs(weeksCol);
+            const snap = await getDocs(weeksCol); // Recupera tutti i documenti (settimane)
             const weeks = [];
 
-            // Cicla ogni documento (settimana)
+            // Scorre ogni documento (settimana)
             for (const docSnap of snap.docs) {
                 const data = docSnap.data();
 
-                // Verifica che il documento contenga un array valido di giorni
+                // Se i dati non esistono o non sono validi → salta questo documento
                 if (!data || !Array.isArray(data.days)) continue;
 
-                // Estrae anno e numero della settimana dall'ID (es. "2025-W16")
+                // Estrae anno e numero settimana dall'ID del documento (esempio "2025-W16")
                 const [year, week] = docSnap.id.split("-W");
 
-                // Calcola le date di inizio e fine settimana basandosi sul numero della settimana
+                // Calcola la data di inizio e fine settimana basandosi sul numero settimana
                 const start = new Date(+year, 0, (parseInt(week) - 1) * 7 + 1);
                 const end = new Date(+year, 0, (parseInt(week) - 1) * 7 + 7);
 
-                // Costruisce un'etichetta leggibile con intervallo date (es. "15/04–21/04")
+                // Crea un'etichetta leggibile per l'intervallo della settimana (esempio "15/04–21/04")
                 const label = `${start.toLocaleDateString("it-IT", {
                     day: "2-digit",
                     month: "2-digit",
@@ -57,70 +65,86 @@ function WeeklyOverview() {
                     month: "2-digit",
                 })}`;
 
-                // Estrae il mese di riferimento in formato "yyyy-MM" per raggruppamento
+                // Determina il mese della settimana in formato "yyyy-MM" per raggruppamento e filtro
                 const monthKey = format(start, "yyyy-MM");
 
-                // Inserisce la settimana nell'array con tutti i dati necessari
+                // Aggiunge le informazioni della settimana all'elenco
                 weeks.push({
-                    id: docSnap.id,     // ID della settimana (es. "2025-W16")
-                    label,              // Etichetta visuale dell'intervallo
+                    id: docSnap.id,     // ID univoco della settimana (es. "2025-W16")
+                    label,              // Etichetta visiva dell'intervallo date
                     days: data.days,    // Array dei giorni con dati di studio
-                    month: monthKey,    // Mese in formato "yyyy-MM"
+                    month: monthKey,    // Mese di riferimento in formato "yyyy-MM"
                 });
             }
 
-            // Ordina le settimane dalla più recente alla più vecchia
+            // Ordina le settimane in ordine decrescente (dalla più recente alla più vecchia)
             weeks.sort((a, b) => (a.id < b.id ? 1 : -1));
 
-            // Aggiorna lo stato con l'elenco completo delle settimane
+            // Aggiorna lo stato con tutte le settimane caricate
             setAllWeeks(weeks);
         };
 
-        // Chiama la funzione per caricare le settimane
+        // Esegue la funzione di caricamento delle settimane
         fetchAllWeeks();
-    }, [currentUser]);
+    }, [currentUser]); // Si aggiorna solo quando currentUser cambia
 
-    // Calcola dinamicamente i mesi disponibili tra tutte le settimane
+    /**
+     * Calcola dinamicamente i mesi disponibili basandosi sulle settimane caricate
+     * → Utile per generare il filtro dei mesi
+     */
     const monthsAvailable = useMemo(() => {
-        const set = new Set();
-        allWeeks.forEach((w) => set.add(w.month)); // Aggiunge ogni mese all'insieme
-        return Array.from(set).sort((a, b) => new Date(b) - new Date(a)); // Ordina i mesi in ordine decrescente
+        const set = new Set(); // Usa un Set per evitare duplicati
+
+        allWeeks.forEach((w) => set.add(w.month)); // Aggiunge ogni mese presente
+
+        // Converte il Set in array e lo ordina in ordine decrescente (dal più recente)
+        return Array.from(set).sort((a, b) => new Date(b) - new Date(a));
     }, [allWeeks]);
 
-    // Filtra le settimane da mostrare in base al mese selezionato (o mostra tutte se nessun mese è selezionato)
+    /**
+     * Filtra le settimane in base al mese selezionato
+     * - Se nessun mese è selezionato → mostra tutte le settimane
+     * - Altrimenti → mostra solo quelle del mese selezionato
+     */
     const weeksToDisplay = selectedMonth
         ? allWeeks.filter((w) => w.month === selectedMonth)
         : allWeeks;
 
-    // Funzione per costruire i dati da fornire al grafico a barre per una settimana
+    /**
+     * Funzione per creare i dati necessari al grafico a barre settimanale
+     * - Prepara le etichette dei giorni e i dati di studio (convertiti in ore)
+     */
     const createChartData = (days) => ({
-        labels: ["Lun", "Mar", "Mer", "Gio", "Ven", "Sab", "Dom"], // Etichette dei giorni
+        labels: ["Lun", "Mar", "Mer", "Gio", "Ven", "Sab", "Dom"], // Giorni della settimana (in italiano)
         datasets: [
             {
-                label: "Studio (h)",                            // Etichetta della legenda
-                data: days.map((d) => (d.study || 0) / 60),     // Valori di studio convertiti da minuti a ore
-                backgroundColor: "#a855f7",                     // Colore delle barre
-                borderRadius: 5,                                // Arrotondamento delle barre
+                label: "Studio (h)",                            // Nome della serie di dati
+                data: days.map((d) => (d.study || 0) / 60),     // Dati → minuti convertiti in ore
+                backgroundColor: "#a855f7",                     // Colore delle barre del grafico
+                borderRadius: 5,                                // Angoli arrotondati delle barre
             },
         ],
     });
 
-    // Opzioni di configurazione per il grafico settimanale
+    /**
+     * Configurazione delle opzioni del grafico settimanale
+     * - Include legenda, aspetto assi, griglie e titoli
+     */
     const options = {
         responsive: true, // Il grafico si adatta alle dimensioni del contenitore
         plugins: {
-            legend: { display: true, labels: { color: "#ccc" } }, // Mostra la legenda con testo chiaro
+            legend: { display: true, labels: { color: "#ccc" } }, // Visualizza la legenda con colore chiaro
         },
         scales: {
             y: {
-                beginAtZero: true,                         // L’asse Y parte da zero
+                beginAtZero: true,                         // L'asse Y parte da 0
                 ticks: { color: "#ccc" },                  // Colore delle etichette asse Y
-                grid: { color: "#444" },                   // Colore griglia Y
+                grid: { color: "#444" },                   // Colore della griglia asse Y
                 title: { display: true, text: "Ore", color: "#ccc" }, // Titolo asse Y
             },
             x: {
-                ticks: { color: "#ccc" },                  // Colore etichette asse X
-                grid: { color: "#444" },                   // Colore griglia X
+                ticks: { color: "#ccc" },                  // Colore delle etichette asse X
+                grid: { color: "#444" },                   // Colore della griglia asse X
             },
         },
     };

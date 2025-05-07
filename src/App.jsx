@@ -9,53 +9,100 @@ import { useRedirect } from "./RedirectContext";
 import "./App.css";
 
 function App() {
+  // Stato per controllare la visibilità del popup 
   const [showPopup, setShowPopup] = useState(false);
+
+  // Stato per definire il tipo di popup da mostrare 
   const [popupType, setPopupType] = useState("");
+
+  // Stato per gestire la visualizzazione di un Easter Egg (animazione o contenuto nascosto)
   const [showEasterEgg, setShowEasterEgg] = useState(false);
+
+  // Stato che contiene la lista delle sessioni attive recuperate dal database
   const [activeSessions, setActiveSessions] = useState([]);
 
+  // Ottiene l'utente autenticato dal contesto di autenticazione
   const { currentUser } = useAuth();
+
+  // Ottiene la funzione per impostare l'id di redirect nel contesto Redirect
   const { setRedirectSessionId } = useRedirect();
+
+  // Hook di React Router per la navigazione tra le pagine
   const navigate = useNavigate();
 
+  /**
+   * useEffect → viene eseguito al montaggio del componente
+   * - Recupera le sessioni attive dal database Firestore
+   * - Filtra le sessioni con isActive === true e le salva nello stato activeSessions
+   */
   useEffect(() => {
     const fetchSessionsFromDB = async () => {
       try {
+        // Query per ottenere le sessioni attive dalla collezione "globalSessions"
         const q = query(collection(db, "globalSessions"), where("isActive", "==", true));
+
+        // Esegue la query e ottiene i documenti
         const querySnapshot = await getDocs(q);
+
+        // Mappa i documenti in un array di sessioni con id e dati
         const sessions = querySnapshot.docs.map(doc => ({
           id: doc.id,
           ...doc.data()
         }));
+
+        // Aggiorna lo stato con le sessioni recuperate
         setActiveSessions(sessions);
       } catch (error) {
+        // In caso di errore → lo registra in console
         console.error("Errore nel recupero delle sessioni:", error);
       }
     };
 
+    // Chiama la funzione di fetch all'avvio
     fetchSessionsFromDB();
-  }, []);
+  }, []); // Dipendenza vuota → eseguito solo una volta
 
+  /**
+   * Gestisce il click su una sessione o l'intenzione di unirsi
+   * - Se l'utente è autenticato → naviga direttamente alla sessione
+   * - Se non autenticato → salva l'id della sessione per il redirect e apre il popup di login
+   */
   const handleSessionClickOrLogin = (sessionId) => {
     if (!sessionId) return;
+
     if (currentUser) {
+      // Utente autenticato → naviga alla sessione
       navigate(`/session/${sessionId}`);
     } else {
+      // Utente non autenticato → salva il sessionId per redirect e mostra popup login
       setRedirectSessionId(sessionId);
       setPopupType("Login");
       setShowPopup(true);
     }
   };
 
+  /**
+   * Apre un popup specifico
+   * - Imposta il tipo di popup da mostrare
+   * - Mostra il popup
+   */
   const openPopup = (type) => {
     setPopupType(type);
     setShowPopup(true);
   };
 
+  /**
+   * Chiude il popup
+   */
   const closePopup = () => {
     setShowPopup(false);
   };
 
+  /**
+   * Alterna la visualizzazione dell'Easter Egg
+   * - Se visibile → nasconde
+   * - Se nascosto → mostra
+   */
   const toggleEasterEgg = () => {
     setShowEasterEgg(!showEasterEgg);
   };

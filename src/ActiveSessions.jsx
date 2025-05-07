@@ -3,18 +3,35 @@ import { useAuth } from "./AuthContext";
 import { useNavigate } from "react-router-dom";
 
 function ActiveSessions({ sessions, openLoginPopup }) {
+    // Stato che memorizza il termine di ricerca inserito dall'utente
     const [searchTerm, setSearchTerm] = useState("");
+
+    // Recupera l'utente autenticato dal contesto
     const { currentUser } = useAuth();
+
+    // Hook di React Router per la navigazione tra le pagine
     const navigate = useNavigate();
 
+    /**
+     * Funzione per gestire il join (entrata) in una sessione
+     * - Se l'utente è autenticato → naviga direttamente alla pagina della sessione
+     * - Se l'utente non è autenticato → apre il popup di login passando l'id della sessione
+     */
     const handleJoinSession = (sessionId) => {
         if (currentUser) {
+            // Utente autenticato → accede direttamente alla sessione
             navigate(`/session/${sessionId}`);
         } else {
+            // Utente non autenticato → mostra il popup di login con sessionId come parametro
             openLoginPopup(sessionId);
         }
     };
 
+    /**
+     * Filtra le sessioni in base al termine di ricerca
+     * - Confronta il nome della sessione (in minuscolo) con il termine di ricerca (in minuscolo)
+     * - Restituisce solo le sessioni che includono il termine di ricerca
+     */
     const filteredSessions = sessions.filter(session =>
         session.name && session.name.toLowerCase().includes(searchTerm.toLowerCase())
     );
@@ -126,7 +143,7 @@ function ActiveSessions({ sessions, openLoginPopup }) {
                 )}
             </div>
 
-            {/* Custom scrollbar styles */}
+            {/*  scrollbar styles personalizzato*/}
             <style jsx>{`
                 .custom-scrollbar::-webkit-scrollbar {
                     width: 6px;

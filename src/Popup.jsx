@@ -12,35 +12,60 @@ import {
 import { useRedirect } from "./RedirectContext";
 
 const Popup = ({ type, onClose }) => {
+  // Stati per memorizzare i dati del form (email, password, nome utente)
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
+
+  // Stato per indicare se è in corso un'operazione di autenticazione (usato per disabilitare il form o mostrare loader)
   const [loading, setLoading] = useState(false);
+
+  // Stato per memorizzare eventuali errori (es. email non valida, password errata, ecc.)
   const [error, setError] = useState("");
+
+  // Stato per il tipo di form (es. login o registrazione) inizializzato con il valore passato come prop "type"
   const [formType, setFormType] = useState(type);
+
+  // Hook per la navigazione tra pagine (React Router)
   const navigate = useNavigate();
+
+  // Recupera dal contesto redirect le informazioni per reindirizzare l'utente dopo il login/registrazione
   const { redirectSessionId, setRedirectSessionId } = useRedirect();
 
+  /**
+   * Funzione generica per eseguire un'azione di autenticazione (es. login o registrazione)
+   * - Gestisce il caricamento, l'eventuale redirect post-autenticazione e gli errori
+   */
   const handleAuthAction = async (authFunction) => {
     setLoading(true);
     setError("");
+
     try {
-      await authFunction();
+      await authFunction(); // Esegue la funzione di autenticazione passata
+
       if (redirectSessionId) {
+        // Se è presente una sessione a cui reindirizzare → naviga lì
         navigate(`/session/${redirectSessionId}`);
-        setRedirectSessionId(null);
+        setRedirectSessionId(null); // Pulisce il redirect
       } else {
+        // Altrimenti naviga alla pagina personale utente
         navigate("/user");
       }
-      onClose();
+
+      onClose(); // Chiude il form/modal corrente
     } catch (err) {
-      handleFirebaseError(err);
+      handleFirebaseError(err); // Gestisce l'errore
     } finally {
-      setLoading(false);
+      setLoading(false); // Termina il caricamento
     }
   };
 
+  /**
+   * Gestisce gli errori restituiti da Firebase durante le operazioni di autenticazione
+   * - Traduce i codici errore in messaggi utente più leggibili
+   */
   const handleFirebaseError = (error) => {
+    // Mappa dei codici di errore di Firebase → messaggi personalizzati in italiano
     const errorMessages = {
       'auth/invalid-email': "Email non valida. Controlla il formato.",
       'auth/user-disabled': "Account disabilitato. Contatta il supporto.",
@@ -67,28 +92,43 @@ const Popup = ({ type, onClose }) => {
       'auth/unverified-email': "Email non verificata. Controlla la tua casella di posta.",
     };
 
+    // Imposta il messaggio di errore corrispondente oppure un messaggio generico se il codice non è previsto
     setError(errorMessages[error.code] || `Errore imprevisto: ${error.message || error.code}`);
   };
 
+  /**
+   * Gestisce la registrazione di un nuovo utente
+   * - Valida l'email (escludendo le whitelisted)
+   * - Crea l'utente su Firebase
+   * - Aggiorna il profilo utente con il nome
+   * - Esegue il redirect dopo la registrazione
+   */
   const handleRegister = async () => {
     setLoading(true);
     setError("");
 
+    // Lista di email whitelisted che saltano il controllo di validità
     const whitelist = ["test@gmail.com", "test12"];
 
     try {
+      // Se l'email non è nella whitelist → verifica con il servizio GhostMail
       if (!whitelist.includes(email)) {
         const check = await verifyEmailWithGhostMail(email);
         if (!check.valid) {
+          // Se l'email non è valida o è temporanea → mostra errore e blocca la registrazione
           setError("Email non valida, temporanea o inesistente.");
           setLoading(false);
           return;
         }
       }
 
+      // Crea un nuovo utente con email e password tramite Firebase Authentication
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+
+      // Aggiorna il profilo dell'utente con il nome inserito
       await updateProfile(userCredential.user, { displayName: name });
 
+      // Esegue il redirect alla sessione se prevista, altrimenti alla pagina utente
       if (redirectSessionId) {
         navigate(`/session/${redirectSessionId}`);
         setRedirectSessionId(null);
@@ -96,8 +136,10 @@ const Popup = ({ type, onClose }) => {
         navigate("/user");
       }
 
+      // Chiude il form/modal di registrazione
       onClose();
     } catch (err) {
+      // Gestisce eventuali errori durante la registrazione
       handleFirebaseError(err);
     } finally {
       setLoading(false);

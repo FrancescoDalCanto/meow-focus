@@ -11,21 +11,48 @@ import useLoFiMusic from "./useLoFiMusic";
 import StudyProgress from "./StudyProgress";
 
 function User() {
+  // Recupera l'utente corrente autenticato tramite hook personalizzato
   const { currentUser } = useAuth();
+
+  // Hook di React Router per navigare tra le pagine
   const navigate = useNavigate();
 
+  // Stato per la durata della sessione di studio (in minuti), valore iniziale = 25
   const [studyDuration, setStudyDuration] = useState(25);
+
+  // Stato per la durata della pausa (in minuti), valore iniziale = 5
   const [breakDuration, setBreakDuration] = useState(5);
+
+  // Stato che controlla se il popup "Unisciti alla sessione" è aperto o chiuso
   const [isJoinSessionOpen, setIsJoinSessionOpen] = useState(false);
+
+  // Stato che controlla se il menu principale è aperto o chiuso
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+
+  // Stato che controlla se il pannello "Progresso" è aperto o chiuso
   const [isProgressOpen, setIsProgressOpen] = useState(false);
+
+  // Stato che controlla se la finestra di conferma logout è aperta o chiusa
   const [isLogoutConfirmOpen, setIsLogoutConfirmOpen] = useState(false);
+
+  // Stato che controlla se il popup "Miglioramenti" è aperto o chiuso
   const [isImprovementsOpen, setIsImprovementsOpen] = useState(false);
+
+  // Stato che memorizza il testo inserito dall'utente per suggerire miglioramenti
   const [improvementText, setImprovementText] = useState("");
+
+  // Hook personalizzato per gestire lo stato della musica LO-FI e la funzione per attivarla/disattivarla
   const { isLoFiMusicOn, toggleLoFiMusic } = useLoFiMusic();
 
+  // ID del video LO-FI (esempio YouTube video ID)
   const videoId = "jfKfPfyJRdk";
 
+  /**
+   * Restituisce il nome da visualizzare per l'utente corrente
+   * - Se non c'è un utente → ritorna stringa vuota
+   * - Se c'è displayName → ritorna quello
+   * - Altrimenti usa la parte locale dell'email (prima della @)
+   */
   const getUserDisplayName = () => {
     if (!currentUser) return "";
     return (
@@ -34,6 +61,12 @@ function User() {
     );
   };
 
+  /**
+   * Gestisce il logout dell'utente
+   * - Esegue il signOut da Firebase
+   * - Se ha successo → reindirizza alla home page ("/")
+   * - Se fallisce → mostra un alert e stampa l'errore in console
+   */
   const handleLogout = async () => {
     try {
       await signOut(auth);
@@ -44,13 +77,23 @@ function User() {
     }
   };
 
+  /**
+   * Gestisce la modifica della durata (studio o pausa)
+   * - Limita il valore inserito tra un minimo e un massimo
+   * - Permette valore vuoto temporaneamente per facilitare l'inserimento manuale
+   */
   const handleDurationChange = (setter, min, max) => (e) => {
     const value = e.target.value;
+
+    // Permette l'inserimento di un campo vuoto (es. durante la digitazione)
     if (value === "") {
       setter("");
       return;
     }
+
     const parsedValue = parseInt(value);
+
+    // Se il valore è valido → lo limita tra min e max e aggiorna lo stato
     if (!isNaN(parsedValue)) {
       const clamped = Math.min(Math.max(parsedValue, min), max);
       setter(clamped);

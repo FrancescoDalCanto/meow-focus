@@ -3,34 +3,52 @@ import React, { useEffect, useState } from 'react';
 const API_KEY = import.meta.env.VITE_YOUTUBE_API_KEY;;
 
 function RadioAPI() {
+    // Stato che memorizza la lista dei video recuperati dall'API di YouTube
     const [videos, setVideos] = useState([]);
+
+    // Stato che memorizza il video attualmente selezionato (può essere usato per la riproduzione)
     const [selectedVideo, setSelectedVideo] = useState(null);
+
+    // Stato che memorizza eventuali errori durante il recupero dei video
     const [error, setError] = useState(null);
 
+    /**
+     * useEffect → viene eseguito una sola volta al montaggio del componente
+     * Effettua una richiesta all'API di YouTube per cercare video LO-FI
+     */
     useEffect(() => {
+        // Funzione asincrona per recuperare i video da YouTube
         async function fetchVideos() {
+            // Query di ricerca: musica LO-FI chill
             const query = "musica lofi chill beats";
+
+            // Costruzione URL della richiesta API YouTube
             const url = `https://www.googleapis.com/youtube/v3/search?part=snippet&q=${encodeURIComponent(query)}&type=video&videoEmbeddable=true&maxResults=5&key=${API_KEY}`;
 
             try {
+                // Esegue la richiesta HTTP
                 const res = await fetch(url);
                 const data = await res.json();
 
                 if (data.error) {
+                    // Se la risposta contiene un errore → registra l'errore e aggiorna lo stato
                     console.error(data.error);
                     setError("Errore nella chiamata API");
                 } else {
+                    // Se la richiesta ha successo → salva i video e seleziona il primo per autoplay
                     setVideos(data.items);
-                    setSelectedVideo(data.items[0]); // autoplay primo video
+                    setSelectedVideo(data.items[0]);
                 }
             } catch (err) {
+                // Gestione errori di rete o fetch
                 console.error("Errore nella chiamata fetch:", err);
                 setError("Errore di rete");
             }
         }
 
+        // Esegue la funzione di fetch al caricamento del componente
         fetchVideos();
-    }, []);
+    }, []); // Dipendenza vuota → eseguito solo una volta
 
     return (
         <div className="p-4">
