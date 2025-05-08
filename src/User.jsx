@@ -11,61 +11,33 @@ import useLoFiMusic from "./useLoFiMusic";
 import StudyProgress from "./StudyProgress";
 
 function User() {
-  // Recupera l'utente corrente autenticato tramite hook personalizzato
   const { currentUser } = useAuth();
-
-  // Hook di React Router per navigare tra le pagine
   const navigate = useNavigate();
 
-  // Stato per la durata della sessione di studio (in minuti), valore iniziale = 25
   const [studyDuration, setStudyDuration] = useState(25);
-
-  // Stato per la durata della pausa (in minuti), valore iniziale = 5
   const [breakDuration, setBreakDuration] = useState(5);
 
-  // Stato che controlla se il popup "Unisciti alla sessione" è aperto o chiuso
   const [isJoinSessionOpen, setIsJoinSessionOpen] = useState(false);
-
-  // Stato che controlla se il menu principale è aperto o chiuso
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-
-  // Stato che controlla se il pannello "Progresso" è aperto o chiuso
   const [isProgressOpen, setIsProgressOpen] = useState(false);
-
-  // Stato che controlla se la finestra di conferma logout è aperta o chiusa
   const [isLogoutConfirmOpen, setIsLogoutConfirmOpen] = useState(false);
-
-  // Stato che controlla se il popup "Miglioramenti" è aperto o chiuso
   const [isImprovementsOpen, setIsImprovementsOpen] = useState(false);
-
-  // Stato che memorizza il testo inserito dall'utente per suggerire miglioramenti
   const [improvementText, setImprovementText] = useState("");
 
-  // Hook personalizzato per gestire lo stato della musica LO-FI e la funzione per attivarla/disattivarla
   const { isLoFiMusicOn, toggleLoFiMusic } = useLoFiMusic();
-
-  // ID del video LO-FI (esempio YouTube video ID)
   const videoId = "jfKfPfyJRdk";
 
   /**
-   * Restituisce il nome da visualizzare per l'utente corrente
-   * - Se non c'è un utente → ritorna stringa vuota
-   * - Se c'è displayName → ritorna quello
-   * - Altrimenti usa la parte locale dell'email (prima della @)
+   * Restituisce il nome da visualizzare per l'utente corrente.
+   * Se non presente, usa la parte prima della @ dell'email.
    */
   const getUserDisplayName = () => {
     if (!currentUser) return "";
-    return (
-      currentUser.displayName ||
-      (currentUser.email ? currentUser.email.split("@")[0] : "Utente")
-    );
+    return currentUser.displayName || (currentUser.email ? currentUser.email.split("@")[0] : "Utente");
   };
 
   /**
-   * Gestisce il logout dell'utente
-   * - Esegue il signOut da Firebase
-   * - Se ha successo → reindirizza alla home page ("/")
-   * - Se fallisce → mostra un alert e stampa l'errore in console
+   * Effettua il logout dell'utente e reindirizza alla homepage.
    */
   const handleLogout = async () => {
     try {
@@ -78,22 +50,17 @@ function User() {
   };
 
   /**
-   * Gestisce la modifica della durata (studio o pausa)
-   * - Limita il valore inserito tra un minimo e un massimo
-   * - Permette valore vuoto temporaneamente per facilitare l'inserimento manuale
+   * Cambia la durata (studio o pausa), limitando il valore in un range.
    */
   const handleDurationChange = (setter, min, max) => (e) => {
     const value = e.target.value;
 
-    // Permette l'inserimento di un campo vuoto (es. durante la digitazione)
     if (value === "") {
       setter("");
       return;
     }
 
     const parsedValue = parseInt(value);
-
-    // Se il valore è valido → lo limita tra min e max e aggiorna lo stato
     if (!isNaN(parsedValue)) {
       const clamped = Math.min(Math.max(parsedValue, min), max);
       setter(clamped);
@@ -102,6 +69,7 @@ function User() {
 
   return (
     <div className="min-h-screen bg-gray-900 text-white p-4 md:p-8 relative">
+      {/* Header con menu, saluto e pulsante logout */}
       <header className="grid grid-cols-3 items-center mb-8 md:mb-12">
         <div className="flex items-center gap-4 justify-start">
           <div className="relative">
@@ -117,6 +85,7 @@ function User() {
               </div>
             </button>
 
+            {/* Menu laterale */}
             {isMenuOpen && (
               <div className="absolute left-0 mt-2 w-48 bg-purple-800 rounded-lg shadow-xl z-50 overflow-hidden">
                 <ul>
@@ -179,6 +148,7 @@ function User() {
         </section>
       </main>
 
+      {/* Modale andamento studio */}
       {isProgressOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 p-4">
           <div className="bg-gray-800 rounded-xl max-w-3xl w-full p-6 border border-purple-500 overflow-y-auto max-h-[90vh]">
@@ -192,6 +162,7 @@ function User() {
         </div>
       )}
 
+      {/* Modale miglioramenti */}
       {isImprovementsOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 p-4">
           <div className="bg-gray-800 rounded-xl max-w-md w-full p-6 border border-purple-500">
@@ -225,6 +196,21 @@ function User() {
         </div>
       )}
 
+      {/* Modale join session */}
+      {isJoinSessionOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 p-4">
+          <div className="bg-gray-800 rounded-xl max-w-md w-full p-6 border border-purple-500">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-xl font-bold text-purple-300">🚪 Unisciti a una sessione</h3>
+              <button onClick={() => setIsJoinSessionOpen(false)} className="text-gray-400 hover:text-white text-2xl">&times;</button>
+            </div>
+
+            <JoinSession onClose={() => setIsJoinSessionOpen(false)} />
+          </div>
+        </div>
+      )}
+
+      {/* Modale conferma logout */}
       {isLogoutConfirmOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 p-4">
           <div className="bg-gray-800 rounded-xl max-w-sm w-full p-6 border border-purple-500">
@@ -234,12 +220,13 @@ function User() {
             </div>
             <div className="flex justify-center gap-4">
               <button onClick={() => setIsLogoutConfirmOpen(false)} className="bg-gray-600 hover:bg-gray-500 px-4 py-2 rounded-lg">Annulla</button>
-              <button onClick={handleLogout} className="bg-purple-500 hover:bg-purple-500 px-4 py-2 rounded-lg">Esci</button>
+              <button onClick={handleLogout} className="bg-purple-500 hover:bg-purple-400 px-4 py-2 rounded-lg">Esci</button>
             </div>
           </div>
         </div>
       )}
 
+      {/* Musica LoFi in background (nascosta) */}
       {isLoFiMusicOn && (
         <iframe width="0" height="0" style={{ display: "none" }} src={`https://www.youtube.com/embed/${videoId}?autoplay=1&mute=0&loop=1&playlist=${videoId}`} title="LoFi Music" allow="autoplay" />
       )}
