@@ -21,9 +21,6 @@ function StudyBreakTimer({ studyDuration, breakDuration, sessionId, sync, canCon
   // Riferimenti per i suoni di notifica
   const studyAudioRef = useRef(null);                   // audio che avvisa della fine della pausa → inizio studio
   const breakAudioRef = useRef(null);                   // audio che avvisa della fine dello studio → inizio pausa
-  const pauseSoonAudioRef = useRef(null);               // audio che avvisa che lo studio sta per terminare (30 sec rimanenti)
-  const studySoonAudioRef = useRef(null);               // audio che avvisa che la pausa sta per terminare (30 sec rimanenti)
-  const hasPlayedSoonAudio = useRef(false);             // flag per non ripetere il suono "sta per finire"
 
   // Limite massimo per evitare timer troppo lunghi
   const MAX_DURATION = 86400;
@@ -105,20 +102,6 @@ function StudyBreakTimer({ studyDuration, breakDuration, sessionId, sync, canCon
       setSecondsLeft(newDuration);
     }
   }, [safeStudyDuration, safeBreakDuration, isStudyTime, sync, isRunning, secondsLeft]);
-
-  /**
-   * Audio "sta per finire" → quando mancano <= 30 secondi
-   */
-  useEffect(() => {
-    if (secondsLeft <= 30 && secondsLeft > 0 && !hasPlayedSoonAudio.current) {
-      if (isStudyTime && pauseSoonAudioRef.current) pauseSoonAudioRef.current.play();
-      if (!isStudyTime && studySoonAudioRef.current) studySoonAudioRef.current.play();
-      hasPlayedSoonAudio.current = true;
-    }
-    if (secondsLeft > 30) {
-      hasPlayedSoonAudio.current = false;
-    }
-  }, [secondsLeft, isStudyTime]);
 
   /**
    * Timer principale → decrementa ogni secondo
@@ -288,8 +271,6 @@ function StudyBreakTimer({ studyDuration, breakDuration, sessionId, sync, canCon
 
       <audio ref={studyAudioRef} src="/audio/study_start.mp3" preload="auto" />
       <audio ref={breakAudioRef} src="/audio/break_start.mp3" preload="auto" />
-      <audio ref={pauseSoonAudioRef} src="/audio/pause_soon.mp3" preload="auto" />
-      <audio ref={studySoonAudioRef} src="/audio/study_soon.mp3" preload="auto" />
     </div>
   );
 }
