@@ -15,9 +15,6 @@ import { format } from "date-fns";
 
 ChartJS.register(BarElement, CategoryScale, LinearScale, Tooltip, Legend);
 
-// TODO: dividere i commenti per le cose che fanno
-
-
 function WeeklyOverview() {
     // Ottiene l'utente attualmente autenticato dal contesto globale
     const { currentUser } = useAuth();

@@ -202,30 +202,55 @@ function StudyProgress() {
      * - Gestisce colori, titoli e griglie
      */
     const options = {
-        responsive: true, // Il grafico si adatta al contenitore
+        responsive: true, // Il grafico si adatta alle dimensioni del contenitore
         plugins: {
-            legend: { display: true, labels: { color: "#ccc" } }, // Mostra la legenda con testo chiaro
+            legend: {
+                display: true, // Mostra la legenda
+                labels: { color: "#ccc" } // Colore del testo della legenda
+            },
             tooltip: {
                 callbacks: {
                     label: function (context) {
+                        // Recupera il valore grezzo
                         const rawValue = context.raw;
-                        const hours = Math.floor(rawValue);           // Ore intere
-                        const minutes = Math.round((rawValue - hours) * 60); // Minuti residui
-                        return `Studio: ${hours}h ${minutes}m`;       // Testo visualizzato nel tooltip
+                        // Calcola le ore intere
+                        const hours = Math.floor(rawValue);
+                        // Calcola i minuti residui (parte decimale * 60)
+                        const minutes = Math.round((rawValue - hours) * 60);
+                        // Ritorna il testo formattato per il tooltip
+                        return `Studio: ${hours}h ${minutes}m`;
                     }
                 }
             }
         },
         scales: {
             y: {
-                beginAtZero: true,                         // Asse Y parte da 0
-                ticks: { color: "#ccc" },                  // Colore delle etichette Y
-                grid: { color: "#444" },                   // Colore griglia Y
-                title: { display: true, text: "Ore", color: "#ccc" }, // Titolo asse Y
+                beginAtZero: true, // L'asse Y parte da 0
+                ticks: {
+                    color: "#ccc", // Colore delle etichette Y
+                    // Callback per personalizzare le etichette dei tick sull'asse Y
+                    callback: function (value) {
+                        const hours = Math.floor(value); // Ore intere
+                        const minutes = Math.round((value - hours) * 60); // Minuti residui
+
+                        // Se i minuti sono 0, mostra solo le ore (es. "2h")
+                        if (minutes === 0) {
+                            return `${hours}h`;
+                        }
+                        // Altrimenti mostra ore e minuti (es. "2h 30m")
+                        return `${hours}h ${minutes}m`;
+                    }
+                },
+                grid: { color: "#444" }, // Colore della griglia Y
+                title: {
+                    display: true, // Mostra il titolo dell'asse
+                    text: "Ore", // Testo del titolo asse Y
+                    color: "#ccc" // Colore del titolo
+                },
             },
             x: {
-                ticks: { color: "#ccc" },                  // Colore etichette X
-                grid: { color: "#444" },                   // Colore griglia X
+                ticks: { color: "#ccc" }, // Colore delle etichette X
+                grid: { color: "#444" }, // Colore della griglia X
             },
         },
     };
