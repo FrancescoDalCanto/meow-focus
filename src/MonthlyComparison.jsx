@@ -133,8 +133,8 @@ function MonthlyComparison({ onClose }) {
                     // Personalizza il tooltip per mostrare ore e minuti
                     label: function (context) {
                         const rawValue = context.raw;
-                        const hours = Math.floor(rawValue);
-                        const minutes = Math.round((rawValue - hours) * 60);
+                        const hours = Math.floor(rawValue); // Ore intere
+                        const minutes = Math.round((rawValue - hours) * 60); // Minuti residui
                         return `Studio: ${hours}h ${minutes}m`;
                     }
                 },
@@ -145,11 +145,29 @@ function MonthlyComparison({ onClose }) {
                 beginAtZero: true, // L'asse Y parte da 0
                 title: {
                     display: true,
-                    text: "Minuti", // Titolo asse Y
+                    text: "Ore", // Cambiato da "Minuti" a "Ore" perché ora mostriamo ore e minuti
                     color: "#ccc",
                 },
                 ticks: {
-                    color: "#ccc", // Colore dei numeri sull'asse Y
+                    color: "#ccc", // Colore delle etichette sull'asse Y
+                    // Aggiunto callback per formattare le etichette
+                    callback: function (value) {
+                        const hours = Math.floor(value); // Ore intere
+                        const minutes = Math.round((value - hours) * 60); // Minuti
+
+                        // Se minuti = 0, mostra solo ore (es. "2h")
+                        if (minutes === 0) {
+                            return `${hours}h`;
+                        }
+
+                        // Se ore = 0, mostra solo minuti (es. "15m")
+                        if (hours === 0) {
+                            return `${minutes}m`;
+                        }
+
+                        // Altrimenti mostra ore e minuti (es. "2h 30m")
+                        return `${hours}h ${minutes}m`;
+                    }
                 },
                 grid: {
                     color: "#444", // Colore della griglia dell'asse Y
