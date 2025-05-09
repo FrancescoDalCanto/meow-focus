@@ -180,17 +180,19 @@ function App() {
 
       {showPopup && <Popup type={popupType} onClose={closePopup} />}
 
-      {/* Footer Instagram link */}
-      <div className="fixed bottom-4 left-4 text-gray-400 text-sm hover:text-white transition-colors duration-300">
-        Creato da:{" "}
-        <a
-          href="https://github.com/FrancescoDalCanto/meow-focus"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="underline"
-        >
-          @FrancescoDalCanto
-        </a>
+      {/* Footer GitHub link */}
+      <div className="fixed bottom-4 left-4 w-full max-w-xs sm:max-w-sm md:max-w-md text-gray-400 text-sm hover:text-white transition-colors duration-300 z-50">
+        <div className="flex justify-start px-4">
+          Creato da:{" "}
+          <a
+            href="https://github.com/FrancescoDalCanto/meow-focus"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="underline ml-1"
+          >
+            @FrancescoDalCanto
+          </a>
+        </div>
       </div>
     </div>
   );
