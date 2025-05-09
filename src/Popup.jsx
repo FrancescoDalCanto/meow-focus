@@ -20,7 +20,7 @@ const Popup = ({ type, onClose }) => {
   // Stato per indicare se è in corso un'operazione di autenticazione (usato per disabilitare il form o mostrare loader)
   const [loading, setLoading] = useState(false);
 
-  // Stato per memorizzare eventuali errori (es. email non valida, password errata, ecc.)
+  // Stato per memorizzare eventuali errori 
   const [error, setError] = useState("");
 
   // Stato per il tipo di form (es. login o registrazione) inizializzato con il valore passato come prop "type"

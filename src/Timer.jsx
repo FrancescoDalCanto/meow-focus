@@ -18,9 +18,11 @@ function StudyBreakTimer({ studyDuration, breakDuration, sessionId, sync, canCon
   const studyAudioRef = useRef(null);                      // suono inizio studio
   const breakAudioRef = useRef(null);                      // suono inizio pausa
 
-  const MAX_DURATION = 86400;                              // limite di sicurezza (24 ore)
-  const safeStudyDuration = Math.min(studyDuration, MAX_DURATION);
-  const safeBreakDuration = Math.min(breakDuration, MAX_DURATION);
+  const MAX_DURATION = 86400; // limite di sicurezza (24 ore)
+  const fallbackDuration = 60; // 1 minuto in secondi
+
+  const safeStudyDuration = Math.min(studyDuration > 0 ? studyDuration : fallbackDuration, MAX_DURATION);
+  const safeBreakDuration = Math.min(breakDuration > 0 ? breakDuration : fallbackDuration, MAX_DURATION);
 
   // Calcola settimana e giorno corrente → per salvare progressi
   const getCurrentWeekData = () => {
@@ -32,7 +34,7 @@ function StudyBreakTimer({ studyDuration, breakDuration, sessionId, sync, canCon
     return { year: now.getFullYear(), weekNumber, dayIndex };
   };
 
-  // Salva i minuti di studio se necessario (es. quando termina o metti pausa)
+  // Salva i minuti di studio se necessario
   const saveStudyIfNeeded = async () => {
     const elapsedSeconds = Math.floor((Date.now() - lastSessionStart.current) / 1000);
     if (isStudyTime && elapsedSeconds > 0 && currentUser) {

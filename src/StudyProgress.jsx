@@ -67,7 +67,7 @@ function StudyProgress() {
 
                 // Aggiunge la settimana all'elenco
                 weeks.push({
-                    id: docSnap.id,      // ID univoco es. "2025-W16"
+                    id: docSnap.id,      // ID univoco 
                     label,               // Etichetta visiva con le date
                     days: data.days,     // Dati dei giorni della settimana
                     month: monthKey,     // Mese di appartenenza in formato "yyyy-MM"
@@ -233,11 +233,11 @@ function StudyProgress() {
                         const hours = Math.floor(value); // Ore intere
                         const minutes = Math.round((value - hours) * 60); // Minuti residui
 
-                        // Se i minuti sono 0, mostra solo le ore (es. "2h")
+                        // Se i minuti sono 0, mostra solo le ore
                         if (minutes === 0) {
                             return `${hours}h`;
                         }
-                        // Altrimenti mostra ore e minuti (es. "2h 30m")
+                        // Altrimenti mostra ore e minuti
                         return `${hours}h ${minutes}m`;
                     }
                 },

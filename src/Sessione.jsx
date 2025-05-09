@@ -13,7 +13,7 @@ function Stanza({ sessionId: sessionIdProp = null }) {
     // Hook per la navigazione tra le pagine
     const navigate = useNavigate();
 
-    // Recupera l'id della sessione dalla URL (se presente)
+    // Recupera l'id della sessione dalla URL
     const { id: sessionIdFromUrl } = useParams();
 
     // Stato per la durata dello studio in minuti (default: 25 minuti)
@@ -44,7 +44,7 @@ function Stanza({ sessionId: sessionIdProp = null }) {
     // Stato per controllare se il popup di condivisione link è aperto
     const [isLinkPopupOpen, setIsLinkPopupOpen] = useState(false);
 
-    // Stato per mostrare o nascondere il messaggio di copia link (toast)
+    // Stato per mostrare o nascondere il messaggio di copia link 
     const [showToast, setShowToast] = useState(false);
 
     // Calcola se l'utente corrente è il creatore della sessione
@@ -336,14 +336,8 @@ function Stanza({ sessionId: sessionIdProp = null }) {
             )}
 
             {isLoFiMusicOn && (
-                <iframe
-                    width="0"
-                    height="0"
-                    style={{ display: "none" }}
-                    src="https://www.youtube.com/embed/jfKfPfyJRdk?autoplay=1&mute=0&loop=1&playlist=jfKfPfyJRdk"
-                    title="LoFi Music"
-                    allow="autoplay"
-                />
+                <iframe width="0" height="0" style={{ display: "none" }} src={`https://www.youtube.com/embed/${videoId}?autoplay=1&mute=0&loop=1&playlist=${videoId}`} title="LoFi Music" allow="autoplay" />
+
             )}
         </div>
     );

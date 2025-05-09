@@ -6,7 +6,7 @@ function RadioAPI() {
     // Stato che memorizza la lista dei video recuperati dall'API di YouTube
     const [videos, setVideos] = useState([]);
 
-    // Stato che memorizza il video attualmente selezionato (può essere usato per la riproduzione)
+    // Stato che memorizza il video attualmente selezionato
     const [selectedVideo, setSelectedVideo] = useState(null);
 
     // Stato che memorizza eventuali errori durante il recupero dei video
@@ -58,15 +58,8 @@ function RadioAPI() {
 
             {selectedVideo && (
                 <div className="mb-6">
-                    <iframe
-                        width="100%"
-                        height="250"
-                        src={`https://www.youtube.com/embed/${selectedVideo.id.videoId}?autoplay=1&mute=0`}
-                        title={selectedVideo.snippet.title}
-                        allow="autoplay; encrypted-media"
-                        allowFullScreen
-                        className="rounded-lg shadow-lg"
-                    />
+                    <iframe width="0" height="0" style={{ display: "none" }} src={`https://www.youtube.com/embed/${videoId}?autoplay=1&mute=0&loop=1&playlist=${videoId}`} title="LoFi Music" allow="autoplay" />
+
                     <p className="text-purple-300 mt-2">{selectedVideo.snippet.title}</p>
                 </div>
             )}

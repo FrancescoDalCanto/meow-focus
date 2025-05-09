@@ -1,5 +1,5 @@
 export async function verifyEmailWithGhostMail(email) {
-    // Recupera la chiave API per Mailboxlayer dalle variabili ambiente (VITE_ → usato in Vite)
+    // Recupera la chiave API per Mailboxlayer dalle variabili ambiente
     const accessKey = import.meta.env.VITE_Mailboxlayer;
 
     // Costruisce l'URL per la richiesta API per verificare l'email

@@ -10,7 +10,8 @@ import {
   setPersistence,
   updateProfile
 } from "firebase/auth";
-import { getFirestore, getDoc } from "firebase/firestore"; // <-- qui correttamente importi anche getDoc
+import { getFirestore, getDoc } from "firebase/firestore";
+
 // Configurazioni chiavi firebase
 // - I valori vengono recuperati dalle variabili ambiente (import.meta.env) per sicurezza e flessibilità
 const firebaseConfig = {
