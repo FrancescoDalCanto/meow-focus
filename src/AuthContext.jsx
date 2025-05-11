@@ -8,10 +8,8 @@ const AuthContext = createContext();
 export const AuthProvider = ({ children }) => {
   // Stato che memorizza l'utente attualmente autenticato (null se non autenticato)
   const [currentUser, setCurrentUser] = useState(null);
-
   // Stato che indica se l'autenticazione è in fase di caricamento
   const [loading, setLoading] = useState(true);
-
   // Stato che memorizza eventuali errori durante il processo di autenticazione
   const [error, setError] = useState(null);
 

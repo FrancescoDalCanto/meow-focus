@@ -6,25 +6,18 @@ import CreateGlobalSession from "./CreateGlobalSession";
 function AdminPage() {
     // Stato che indica se l'utente è autenticato (true → admin loggato, false → form di login visibile)
     const [autenticato, setAutenticato] = useState(false);
-
     // Stato che memorizza l'email inserita dall'utente
     const [email, setEmail] = useState("");
-
     // Stato che memorizza la password inserita dall'utente
     const [password, setPassword] = useState("");
-
     // Stato che memorizza eventuali errori di autenticazione
     const [errore, setErrore] = useState("");
-
     // Stato che contiene le sessioni globali recuperate da Firestore
     const [globalSessions, setGlobalSessions] = useState([]);
-
     // Stato che memorizza i suggerimenti caricati dal database
     const [suggestions, setSuggestions] = useState([]);
-
     // Stato che indica se la lista dei suggerimenti è visibile
     const [showSuggestions, setShowSuggestions] = useState(false);
-
     // Stato che indica se i suggerimenti sono in fase di caricamento
     const [loadingSuggestions, setLoadingSuggestions] = useState(false);
 

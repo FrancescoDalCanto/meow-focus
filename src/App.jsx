@@ -11,22 +11,16 @@ import "./App.css";
 function App() {
   // Stato per controllare la visibilità del popup 
   const [showPopup, setShowPopup] = useState(false);
-
   // Stato per definire il tipo di popup da mostrare 
   const [popupType, setPopupType] = useState("");
-
   // Stato per gestire la visualizzazione di un Easter Egg (animazione o contenuto nascosto)
   const [showEasterEgg, setShowEasterEgg] = useState(false);
-
   // Stato che contiene la lista delle sessioni attive recuperate dal database
   const [activeSessions, setActiveSessions] = useState([]);
-
   // Ottiene l'utente autenticato dal contesto di autenticazione
   const { currentUser } = useAuth();
-
   // Ottiene la funzione per impostare l'id di redirect nel contesto Redirect
   const { setRedirectSessionId } = useRedirect();
-
   // Hook di React Router per la navigazione tra le pagine
   const navigate = useNavigate();
 

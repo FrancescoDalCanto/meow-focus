@@ -8,16 +8,12 @@ import { useAuth } from './AuthContext';
 function SessionPage() {
     // Ottiene il parametro "id" dalla URL tramite React Router (identifica la sessione)
     const { id } = useParams();
-
     // Ottiene l'utente attualmente autenticato
     const { currentUser } = useAuth();
-
     // Stato per memorizzare i dati della sessione caricata da Firestore
     const [sessionData, setSessionData] = useState(null);
-
     // Stato per indicare se i dati della sessione sono ancora in fase di caricamento
     const [loading, setLoading] = useState(true);
-
     // Stato per indicare se la sessione non è stata trovata (es. ID non valido)
     const [notFound, setNotFound] = useState(false);
 

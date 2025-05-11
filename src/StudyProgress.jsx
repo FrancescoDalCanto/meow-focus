@@ -19,16 +19,12 @@ ChartJS.register(BarElement, CategoryScale, LinearScale, Tooltip, Legend);
 function StudyProgress() {
     // Ottiene l'utente attualmente autenticato dal contesto globale
     const { currentUser } = useAuth();
-
     // Stato che memorizza tutte le settimane (caricate o generate) con i dati di studio
     const [allWeeks, setAllWeeks] = useState([]);
-
     // Stato per il mese selezionato (usato per filtrare le settimane)
     const [selectedMonth, setSelectedMonth] = useState(null);
-
     // Stato per decidere se mostrare il confronto tra mesi
     const [showMonthlyComparison, setShowMonthlyComparison] = useState(false);
-
     // Stato per memorizzare l'ID della settimana attualmente selezionata (per il grafico)
     const [selectedWeekId, setSelectedWeekId] = useState(null);
 

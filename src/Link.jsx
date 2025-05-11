@@ -6,10 +6,8 @@ export default async function generateSessionLink({ studyDuration, breakDuration
     // Genera un ID univoco per la sessione
     // - Usa Math.random() per creare una stringa casuale in base 36 e ne prende una sottostringa
     const sessionId = Math.random().toString(36).substring(2, 10);
-
     // Ottiene l'utente attualmente autenticato da Firebase Authentication
     const currentUser = auth.currentUser;
-
     // Crea il link della sessione utilizzando l'ID generato
     const link = `http://localhost:5173/session/${sessionId}`;
 

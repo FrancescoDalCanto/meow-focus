@@ -4,10 +4,8 @@ import { db } from "./firebase";
 export async function updateProgress(uid, year, weekNumber, dayIndex, minutes) {
     // Riferimento al documento della settimana corrente per l'utente (uid) nella collezione "studyProgress"
     const docRef = doc(db, "studyProgress", uid, "weeks", `${year}-W${weekNumber}`);
-
     // Recupera il documento della settimana corrente
     const snap = await getDoc(docRef);
-
     // Se il documento esiste → recupera i dati esistenti
     // Altrimenti → crea un oggetto di default con 7 giorni inizializzati a { study: 0 }
     let data = snap.exists()
@@ -16,7 +14,7 @@ export async function updateProgress(uid, year, weekNumber, dayIndex, minutes) {
 
     // Copia l'array dei giorni per poterlo aggiornare
     const updated = [...data.days];
-
+    
     // Se il giorno corrente non esiste (potrebbe succedere in vecchi dati) → inizializza con { study: 0 }
     if (!updated[dayIndex]) updated[dayIndex] = { study: 0 };
 

@@ -3,10 +3,8 @@ import React, { useState } from 'react';
 const JoinSession = ({ onClose, onJoin }) => {
     // Stato che memorizza l'URL inserito dall'utente per la sessione
     const [sessionUrl, setSessionUrl] = useState('');
-
     // Stato che indica se è in corso la validazione dell'URL (usato per mostrare un loader o disabilitare il form)
     const [isValidating, setIsValidating] = useState(false);
-
     // Stato che memorizza eventuali messaggi di errore (es. URL non valido o mancante)
     const [error, setError] = useState('');
 

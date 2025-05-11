@@ -11,20 +11,30 @@ import useLoFiMusic from "./useLoFiMusic";
 import StudyProgress from "./StudyProgress";
 
 function User() {
+  // Ottiene l'utente attualmente autenticato dal contesto Auth
   const { currentUser } = useAuth();
+  // Hook di React Router per navigare tra le pagine
   const navigate = useNavigate();
-
+  // Stato per la durata della sessione di studio (in minuti), default: 25 minuti
   const [studyDuration, setStudyDuration] = useState(25);
+  // Stato per la durata della pausa (in minuti), default: 5 minuti
   const [breakDuration, setBreakDuration] = useState(5);
-
+  // Stato per controllare se il popup "Unisciti a una sessione" è aperto
   const [isJoinSessionOpen, setIsJoinSessionOpen] = useState(false);
+  // Stato per controllare se il menu laterale (hamburger) è aperto
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  // Stato per controllare se il pannello di progresso dello studio è aperto
   const [isProgressOpen, setIsProgressOpen] = useState(false);
+  // Stato per controllare se il popup di conferma logout è aperto
   const [isLogoutConfirmOpen, setIsLogoutConfirmOpen] = useState(false);
+  // Stato per controllare se il popup di suggerimenti e miglioramenti è aperto
   const [isImprovementsOpen, setIsImprovementsOpen] = useState(false);
+  // Stato per il testo scritto dall’utente nel popup dei suggerimenti
   const [improvementText, setImprovementText] = useState("");
-
+  // Hook personalizzato per gestire la musica LoFi (on/off)
   const { isLoFiMusicOn, toggleLoFiMusic } = useLoFiMusic();
+
+  // ID del video YouTube della musica LoFi da riprodurre
   const videoId = "jfKfPfyJRdk";
 
   /**

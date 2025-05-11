@@ -16,19 +16,14 @@ const Popup = ({ type, onClose }) => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
-
   // Stato per indicare se è in corso un'operazione di autenticazione (usato per disabilitare il form o mostrare loader)
   const [loading, setLoading] = useState(false);
-
   // Stato per memorizzare eventuali errori 
   const [error, setError] = useState("");
-
   // Stato per il tipo di form (es. login o registrazione) inizializzato con il valore passato come prop "type"
   const [formType, setFormType] = useState(type);
-
   // Hook per la navigazione tra pagine (React Router)
   const navigate = useNavigate();
-
   // Recupera dal contesto redirect le informazioni per reindirizzare l'utente dopo il login/registrazione
   const { redirectSessionId, setRedirectSessionId } = useRedirect();
 

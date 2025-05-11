@@ -9,44 +9,31 @@ import { useAuth } from "./AuthContext";
 function Stanza({ sessionId: sessionIdProp = null }) {
     // Recupera l'utente attualmente autenticato
     const { currentUser } = useAuth();
-
     // Hook per la navigazione tra le pagine
     const navigate = useNavigate();
-
     // Recupera l'id della sessione dalla URL
     const { id: sessionIdFromUrl } = useParams();
-
     // Stato per la durata dello studio in minuti (default: 25 minuti)
     const [studyDuration, setStudyDuration] = useState(25);
-
     // Stato per la durata della pausa in minuti (default: 5 minuti)
     const [breakDuration, setBreakDuration] = useState(5);
-
     // Stato per l'id della sessione corrente
     // → Priorità: sessionIdProp (passato come prop) → sessionIdFromUrl (nella URL) → null
     const [sessionId, setSessionId] = useState(sessionIdProp || sessionIdFromUrl || null);
-
     // Stato per il link della sessione (URL condivisibile)
     const [sessionLink, setSessionLink] = useState("");
-
     // Stato per l'id dell'utente che ha creato la sessione
     const [sessionCreator, setSessionCreator] = useState(null);
-
     // Stato per memorizzare la lista dei partecipanti alla sessione
     const [participants, setParticipants] = useState([]);
-
     // Stato per controllare se il menu è aperto o chiuso
     const [isMenuOpen, setIsMenuOpen] = useState(false);
-
     // Stato per controllare se la musica LO-FI è attiva o meno
     const [isLoFiMusicOn, setIsLoFiMusicOn] = useState(false);
-
     // Stato per controllare se il popup di condivisione link è aperto
     const [isLinkPopupOpen, setIsLinkPopupOpen] = useState(false);
-
     // Stato per mostrare o nascondere il messaggio di copia link 
     const [showToast, setShowToast] = useState(false);
-
     // Calcola se l'utente corrente è il creatore della sessione
     // → Si aggiorna ogni volta che currentUser o sessionCreator cambiano
     const isCreator = React.useMemo(() => sessionCreator === currentUser?.uid, [sessionCreator, currentUser]);

@@ -12,16 +12,12 @@ import {
 export function getWeeksOfCurrentMonth() {
     // Ottiene la data corrente
     const now = new Date();
-
     // Calcola l'inizio del mese corrente 
     const monthStart = startOfMonth(now);
-
     // Calcola la fine del mese corrente 
     const monthEnd = endOfMonth(now);
-
     // Array che conterrà le informazioni sulle settimane del mese
     const weeks = [];
-
     // Calcola l'inizio della prima settimana del mese
     // - La settimana inizia di lunedì (weekStartsOn: 1)
     let currentWeekStart = startOfWeek(monthStart, { weekStartsOn: 1 });

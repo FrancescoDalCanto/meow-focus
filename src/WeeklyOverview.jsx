@@ -18,10 +18,8 @@ ChartJS.register(BarElement, CategoryScale, LinearScale, Tooltip, Legend);
 function WeeklyOverview() {
     // Ottiene l'utente attualmente autenticato dal contesto globale
     const { currentUser } = useAuth();
-
     // Hook di stato che memorizza tutte le settimane recuperate dal database (usato per il grafico e la selezione)
     const [allWeeks, setAllWeeks] = useState([]);
-
     // Hook di stato per il mese selezionato dall'utente (usato per filtrare le settimane mostrate)
     const [selectedMonth, setSelectedMonth] = useState(null);
 

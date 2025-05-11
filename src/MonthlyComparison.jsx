@@ -18,10 +18,8 @@ ChartJS.register(BarElement, CategoryScale, LinearScale, Tooltip, Legend);
 function MonthlyComparison({ onClose }) {
     // Recupera l'utente attualmente autenticato
     const { currentUser } = useAuth();
-
     // Stato che tiene traccia dei mesi selezionati dall'utente per il confronto tra mesi
     const [selectedMonths, setSelectedMonths] = useState([]);
-
     // Stato che contiene i dati aggregati di studio (in minuti) per ogni mese
     const [monthData, setMonthData] = useState({});
 
@@ -48,10 +46,8 @@ function MonthlyComparison({ onClose }) {
 
                 // Estrae anno e numero settimana dall'id (es. "2025-W15")
                 const [year, week] = doc.id.split("-W");
-
                 // Calcola la data di riferimento della settimana (usata per calcolare il mese)
                 const weekDate = new Date(+year, 0, 1 + (parseInt(week) - 1) * 7);
-
                 // Determina il mese della settimana in formato "yyyy-MM"
                 const monthKey = format(weekDate, "yyyy-MM");
 

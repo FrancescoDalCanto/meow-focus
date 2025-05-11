@@ -26,13 +26,10 @@ const firebaseConfig = {
 
 // Inizializza Firebase utilizzando le configurazioni sopra
 const app = initializeApp(firebaseConfig);
-
 // Inizializza il servizio di autenticazione di Firebase
 const auth = getAuth(app);
-
 // Crea un provider per l'autenticazione tramite Google
 const googleProvider = new GoogleAuthProvider();
-
 // Inizializza il database Firestore per l'app
 const db = getFirestore(app);
 

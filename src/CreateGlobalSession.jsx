@@ -5,13 +5,10 @@ import { db } from "./firebase";
 function CreateGlobalSession() {
     // Stato per memorizzare il nome della sessione inserito dall'utente
     const [name, setName] = useState("");
-
     // Stato per memorizzare il numero di partecipanti inserito dall'utente (default: 1)
     const [participants, setParticipants] = useState(1);
-
     // Stato per mostrare un messaggio di successo dopo la creazione della sessione
     const [successMessage, setSuccessMessage] = useState("");
-
     // Stato per mostrare un eventuale messaggio di errore
     const [errorMessage, setErrorMessage] = useState("");
 

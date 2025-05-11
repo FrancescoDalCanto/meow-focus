@@ -14,10 +14,9 @@ const OnlineWrapper = ({ children }) => {
     useEffect(() => {
         // Funzione da chiamare quando il dispositivo torna online
         const handleOnline = () => setIsOnline(true);
-
         // Funzione da chiamare quando il dispositivo va offline
         const handleOffline = () => setIsOnline(false);
-
+        
         // Aggiunge i listener agli eventi di rete del browser
         window.addEventListener("online", handleOnline);
         window.addEventListener("offline", handleOffline);

@@ -5,10 +5,8 @@ const API_KEY = import.meta.env.VITE_YOUTUBE_API_KEY;;
 function RadioAPI() {
     // Stato che memorizza la lista dei video recuperati dall'API di YouTube
     const [videos, setVideos] = useState([]);
-
     // Stato che memorizza il video attualmente selezionato
     const [selectedVideo, setSelectedVideo] = useState(null);
-
     // Stato che memorizza eventuali errori durante il recupero dei video
     const [error, setError] = useState(null);
 
