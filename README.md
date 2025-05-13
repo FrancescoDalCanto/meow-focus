@@ -9,6 +9,7 @@
 MeowFocus è una piattaforma studiata per supportare studenti e professionisti durante le sessioni di studio o lavoro, favorendo la concentrazione attraverso l'utilizzo del metodo Pomodoro e l'integrazione di musica LoFi. L'applicazione consente sia sessioni personali che collaborative, con timer sincronizzati e statistiche dettagliate sulle attività svolte.
 
 Sviluppata come progetto universitario per il corso di **Sviluppo Applicazioni Web** presso l'Università di Pisa, MeowFocus unisce tecnologie moderne per garantire un'esperienza fluida e interattiva.
+👉 [Accedi all'applicazione](https://meowfocus.netlify.app/)
 
 ---
 
