@@ -50,8 +50,8 @@ function CreateGlobalSession() {
                 participants: parsedParticipants, // Numero di partecipanti
                 studyDuration,                    // Durata della sessione di studio (in secondi)
                 breakDuration,                    // Durata della pausa (in secondi)
-                isActive: false,                  // La sessione non è ancora attiva
-                isRunning: false,                 // Il timer non è in esecuzione
+                isActive: true,                  // La sessione è ancora attiva
+                isRunning: true,                 // Il timer è in esecuzione
                 isStudying: true,                 // Stato iniziale: modalità studio attiva
                 isStudyTime: true,                // Indica che si parte dalla fase di studio
                 startTime: Date.now(),            // Timestamp corrente (inizio sessione)
