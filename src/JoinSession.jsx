@@ -52,13 +52,17 @@ const JoinSession = ({ onClose, onJoin }) => {
         setTimeout(() => {
             setIsValidating(false); // Fine validazione
 
-            if (onJoin) {
-                // Se è presente una funzione di join → la chiama con l'URL inserito
-                onJoin(sessionUrl);
-            } else {
-                // Altrimenti → reindirizza direttamente l'utente all'URL
-                window.location.href = sessionUrl;
-            }
+            // Reindirizza direttamente l'utente all'URL
+            window.location.href = sessionUrl;
+            /*
+                        //TODO: Rimosso perchè inutile
+                        if (onJoin) {
+                            // Se è presente una funzione di join → la chiama con l'URL inserito
+                            onJoin(sessionUrl);
+                        } else {
+                            // Altrimenti → reindirizza direttamente l'utente all'URL
+                            window.location.href = sessionUrl;
+                        }*/
 
             // Chiude il popup (presumibilmente la finestra/modal corrente)
             closePopup();

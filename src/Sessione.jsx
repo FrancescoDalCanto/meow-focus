@@ -40,6 +40,7 @@ function Stanza({ sessionId: sessionIdProp = null }) {
 
 
     // ID del video YouTube della musica LoFi da riprodurre
+    // TODO: Mettere una lista di id e testarli in caso non siano più disponibili (fallback)
     const videoId = "jfKfPfyJRdk";
 
 
