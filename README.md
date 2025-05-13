@@ -55,8 +55,8 @@ Sviluppata come progetto universitario per il corso di **Sviluppo Applicazioni W
 
 1. Clonare il repository:
     ```bash
-    git clone https://github.com/FrancescoDalCanto/-SAW-MeowFocus.git
-    cd -SAW-MeowFocus
+    git clone https://github.com/FrancescoDalCanto/meow-focus.git
+    cd meow-focus
     ```
 
 2. Installare le dipendenze:
