@@ -38,6 +38,11 @@ function Stanza({ sessionId: sessionIdProp = null }) {
     // → Si aggiorna ogni volta che currentUser o sessionCreator cambiano
     const isCreator = React.useMemo(() => sessionCreator === currentUser?.uid, [sessionCreator, currentUser]);
 
+
+    // ID del video YouTube della musica LoFi da riprodurre
+    const videoId = "jfKfPfyJRdk";
+
+
     /**
      * useEffect → crea una nuova sessione se non esiste già e l'utente è autenticato
      */

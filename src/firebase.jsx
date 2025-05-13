@@ -1,4 +1,4 @@
-import { initializeApp } from "firebase/app";
+import { initializeApp } from "firebase/app"; 
 import {
   getAuth,
   GoogleAuthProvider,
@@ -70,5 +70,5 @@ export {
   createUserWithEmailAndPassword,
   updateProfile,
   db,
-  getDoc // <-- Se vuoi puoi anche esportarlo qui se ti serve fuori
+  getDoc
 };

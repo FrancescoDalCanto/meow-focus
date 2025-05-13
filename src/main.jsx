@@ -69,7 +69,7 @@ createRoot(document.getElementById('root')).render(
                                 <Route path="/user" element={<User />} />
 
                                 {/* Pagina "Stanza" per sessioni generiche */}
-                                <Route path="/stanza" element={<Stanza />} />
+                                <Route path="/sessions" element={<Stanza />} />
 
                                 {/* Pagina "Stanza" per sessioni specifiche tramite ID */}
                                 <Route path="/session/:id" element={<Stanza />} />

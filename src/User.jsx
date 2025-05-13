@@ -100,7 +100,7 @@ function User() {
               <div className="absolute left-0 mt-2 w-48 bg-purple-800 rounded-lg shadow-xl z-50 overflow-hidden">
                 <ul>
                   <li>
-                    <button onClick={() => navigate("/stanza")} className="w-full text-left px-4 py-3 hover:bg-purple-700 transition-colors">🐱 Nuova sessione</button>
+                    <button onClick={() => navigate("/sessions")} className="w-full text-left px-4 py-3 hover:bg-purple-700 transition-colors">🐱 Nuova sessione</button>
                   </li>
                   <li>
                     <button onClick={() => { setIsJoinSessionOpen(true); setIsMenuOpen(false); }} className="w-full text-left px-4 py-3 hover:bg-purple-700 transition-colors">🚪 Join</button>

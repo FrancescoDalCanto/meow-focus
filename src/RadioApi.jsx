@@ -55,7 +55,7 @@ function RadioAPI() {
             {error && <p className="text-red-400">{error}</p>}
 
             {selectedVideo && (
-                <div className="mb-6">
+                <div className="mb-6 ">
                     <iframe width="0" height="0" style={{ display: "none" }} src={`https://www.youtube.com/embed/${videoId}?autoplay=1&mute=0&loop=1&playlist=${videoId}`} title="LoFi Music" allow="autoplay" />
 
                     <p className="text-purple-300 mt-2">{selectedVideo.snippet.title}</p>
